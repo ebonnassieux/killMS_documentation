@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>killMS.Predict package &#8212; killMS 0.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=4f649999" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=cb25574f" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=eafc0fe6" />
+    <script src="../_static/documentation_options.js?v=01f34227"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="killMS.Simul package" href="killMS.Simul.html" />
+    <link rel="prev" title="killMS.Plot package" href="killMS.Plot.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="killms-predict-package">
+<h1>killMS.Predict package<a class="headerlink" href="#killms-predict-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-killMS.Predict.ClassImageSM2">
+<span id="killms-predict-classimagesm2-module"></span><h2>killMS.Predict.ClassImageSM2 module<a class="headerlink" href="#module-killMS.Predict.ClassImageSM2" title="Link to this heading">¶</a></h2>
+<p>killMS, a package for calibration in radio interferometry.
+Copyright (C) 2013-2017  Cyril Tasse, l’Observatoire de Paris,
+SKA South Africa, Rhodes University</p>
+<p>This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.</p>
+<p>This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="killMS.Predict.ClassImageSM2.ClassImageSM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">killMS.Predict.ClassImageSM2.</span></span><span class="sig-name descname"><span class="pre">ClassImageSM</span></span><a class="reference internal" href="../_modules/killMS/Predict/ClassImageSM2.html#ClassImageSM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Predict.ClassImageSM2.ClassImageSM" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>initialised to read self.Type.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="killMS.Predict.ClassImageSM2.ClassPreparePredict">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">killMS.Predict.ClassImageSM2.</span></span><span class="sig-name descname"><span class="pre">ClassPreparePredict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Predict/ClassImageSM2.html#ClassPreparePredict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Predict.ClassImageSM2.ClassPreparePredict" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ClassImagerDeconv</span></code></p>
+<p>Inherits from DDFacet.Imager.ClassDeconvMachine import ClassImagerDeconv</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="killMS.Predict.ClassImageSM2.ClassPreparePredict.LoadModel">
+<span class="sig-name descname"><span class="pre">LoadModel</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Predict/ClassImageSM2.html#ClassPreparePredict.LoadModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Predict.ClassImageSM2.ClassPreparePredict.LoadModel" title="Link to this definition">¶</a></dt>
+<dd><p>Start by initialising the ClassModModelMachine from the globaldict
+build self.MM as GiveInitialisedMMFFromFile on the FileDicoModel
+if asked to filter negative components, do so
+if MaskImage is provided, initialise CleanMaskedComponents
+get model_freqs from VS.FreqBandChannelsDegrid
+get ModelImage from self.MM.GiveModelImage
+set self.FacetMachine.ToCasaImage
+set NFacets
+read NodesCat
+build ClusterCat. TODO: ETN: GENERALISE THIS IN THE SCHEMA
+build catalog TODO:ETN: BIS
+per-facet, read l,m, build distance grid
+per-facet, get self.FacetMachine.DicoImager from idDir
+set self.SM.ClusterCat, self.SM&gt;SourceCat
+import APP from DDF multiprocess
+startworkers
+FacetMachine.initCFInBackground
+self.FacetMachine.awaitInitCompletion
+initialise class variables from the above</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="killMS.Predict.ClassImageSM2.ClassPreparePredict.PrepareGridMachinesMapping">
+<span class="sig-name descname"><span class="pre">PrepareGridMachinesMapping</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Predict/ClassImageSM2.html#ClassPreparePredict.PrepareGridMachinesMapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Predict.ClassImageSM2.ClassPreparePredict.PrepareGridMachinesMapping" title="Link to this definition">¶</a></dt>
+<dd><p>build soldir - gridmachine mapping
+read ClusterCat
+per clustercat dir, set DicoJonesDirToFacet
+read model_dict from self.FacetMachine._model_dict; reload it
+per-facet, get iDirJones, sumflux, sumI
+if the iFacet sumflux is not zero, tabulate FacetsID and sumflux per jonesdir (tessel)
+per-facet, read the grid, set the DicoImager and DIcoJonesDirToFacet
+copy ClusterCat, NDirs to build new ones (in case of empty facets within tessels)
+this class imports the beam from killMS.Data
+read solve threshold from ImageSkyModel.
+get apparent flux max per jones-dir.
+if this appflux is less than overall max appflux * threshold, remove it.
+reset mappings from original clustercat to kept one
+reset NDirs etc
+return True</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="killMS.Predict.ClassImageSM2.Worker">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">killMS.Predict.ClassImageSM2.</span></span><span class="sig-name descname"><span class="pre">Worker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">work_queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result_queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">argsImToGrid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">IdSharedMem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DicoImager</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">FacetMode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Fader'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">GD</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Predict/ClassImageSM2.html#Worker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Predict.ClassImageSM2.Worker" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Process</span></code></p>
+<p>Initialise class variables, including shared-mem images</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="killMS.Predict.ClassImageSM2.Worker.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Predict/ClassImageSM2.html#Worker.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Predict.ClassImageSM2.Worker.run" title="Link to this definition">¶</a></dt>
+<dd><p>Parallel run. Read iFacet, FacetDataCache, image.
+read SPHe sharedarray
+read spatial weights from sharedmem
+initialise imtogrid
+calc grid, sumflux via im2grid.givemodeltessel
+push modelgrid to sharedmem
+add success to result_queue</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="killMS.Predict.ClassImageSM2.Worker.shutdown">
+<span class="sig-name descname"><span class="pre">shutdown</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Predict/ClassImageSM2.html#Worker.shutdown"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Predict.ClassImageSM2.Worker.shutdown" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="killms-predict-predictgausspoints-numexpr-module">
+<h2>killMS.Predict.PredictGaussPoints_NumExpr module<a class="headerlink" href="#killms-predict-predictgausspoints-numexpr-module" title="Link to this heading">¶</a></h2>
+</section>
+<section id="killms-predict-predictgausspoints-numexpr5-module">
+<h2>killMS.Predict.PredictGaussPoints_NumExpr5 module<a class="headerlink" href="#killms-predict-predictgausspoints-numexpr5-module" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-killMS.Predict">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-killMS.Predict" title="Link to this heading">¶</a></h2>
+<p>killMS, a package for calibration in radio interferometry.
+Copyright (C) 2013-2017  Cyril Tasse, l’Observatoire de Paris,
+SKA South Africa, Rhodes University</p>
+<p>This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.</p>
+<p>This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">killMS</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">killMS</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="TestHarness.html">TestHarness package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="killMS.html">killMS package</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">killMS</a><ul>
+  <li><a href="killMS.html">killMS package</a><ul>
+      <li>Previous: <a href="killMS.Plot.html" title="previous chapter">killMS.Plot package</a></li>
+      <li>Next: <a href="killMS.Simul.html" title="next chapter">killMS.Simul package</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2026, Cyril Tasse.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/api/killMS.Predict.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

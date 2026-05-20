@@ -1,0 +1,510 @@
+\begin{sphinxtheindex}
+\let\bigletter\sphinxstyleindexlettergroup
+\let\spxpagem \sphinxstyleindexpagemain
+\let\spxentry \sphinxstyleindexentry
+\let\spxextra \sphinxstyleindexextra
+
+  \bigletter A
+  \item \spxentry{add\_option()}\spxextra{killMS.Parset.MyOptParse.MyOptParse method}, 
+		\hyperpage{31}
+  \item \spxentry{AddCol()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{8}
+  \item \spxentry{AddDt()}\spxextra{killMS.Other.ClassTimeIt.ClassTimeIt method}, \hyperpage{21}
+  \item \spxentry{addToolBar()}\spxextra{killMS.Plot.Graph.ClassMplWidget method}, \hyperpage{35}
+  \item \spxentry{AddUVW\_dt()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{8}
+  \item \spxentry{AltAz}\spxextra{class in killMS.Data.sidereal}, \hyperpage{12}
+  \item \spxentry{altAz()}\spxextra{killMS.Data.sidereal.RADec method}, \hyperpage{14}
+  \item \spxentry{AppendField()}\spxextra{in module killMS.Array.RecArrayOps}, \hyperpage{7}
+
+  \indexspace
+  \bigletter C
+  \item \spxentry{CheckConformity()}\spxextra{killMS.MergeSols.ClassMergeSols method}, 
+		\hyperpage{43}
+  \item \spxentry{cla()}\spxextra{killMS.Plot.Graph.ClassMplWidget method}, \hyperpage{35}
+  \item \spxentry{ClassClipMachine}\spxextra{class in killMS.ClipCal}, \hyperpage{43}
+  \item \spxentry{ClassCovMat}\spxextra{class in killMS.Weights.W\_DiagBL}, \hyperpage{40}
+  \item \spxentry{ClassImageSM}\spxextra{class in killMS.Predict.ClassImageSM2}, \hyperpage{38}
+  \item \spxentry{ClassMergeSols}\spxextra{class in killMS.MergeSols}, \hyperpage{43}
+  \item \spxentry{ClassModelEvolution}\spxextra{class in killMS.Wirtinger.ClassEvolve}, 
+		\hyperpage{40}
+  \item \spxentry{ClassMplWidget}\spxextra{class in killMS.Plot.Graph}, \hyperpage{35}
+  \item \spxentry{ClassMplWidget.ClassStrValPixel}\spxextra{class in killMS.Plot.Graph}, 
+		\hyperpage{35}
+  \item \spxentry{ClassMS}\spxextra{class in killMS.Data.ClassMS}, \hyperpage{8}
+  \item \spxentry{ClassPreparePredict}\spxextra{class in killMS.Predict.ClassImageSM2}, 
+		\hyperpage{38}
+  \item \spxentry{ClassPrint}\spxextra{class in killMS.Other.ClassPrint}, \hyperpage{20}
+  \item \spxentry{ClassPrint}\spxextra{class in killMS.Parset.ClassPrint}, \hyperpage{28}
+  \item \spxentry{ClassReCluster}\spxextra{class in killMS.Data.ClassReCluster}, \hyperpage{11}
+  \item \spxentry{ClassSolPredictMachine}\spxextra{class in killMS.Wirtinger.ClassSolPredictMachine}, 
+		\hyperpage{41}
+  \item \spxentry{ClassTimeIt}\spxextra{class in killMS.Other.ClassTimeIt}, \hyperpage{21}
+  \item \spxentry{ClipWeights()}\spxextra{killMS.ClipCal.ClassClipMachine method}, \hyperpage{43}
+  \item \spxentry{ConfigSectionMap()}\spxextra{killMS.Parset.ReadCFG.Parset method}, \hyperpage{33}
+  \item \spxentry{coordRotate()}\spxextra{in module killMS.Data.sidereal}, \hyperpage{15}
+  \item \spxentry{CopyCol()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{8}
+  \item \spxentry{CopyNonSPWDependent()}\spxextra{killMS.Data.ClassMS.ClassMS method}, 
+		\hyperpage{8}
+  \item \spxentry{Counter}\spxextra{class in killMS.Other.Counter}, \hyperpage{22}
+  \item \spxentry{CounterTime}\spxextra{class in killMS.Other.Counter}, \hyperpage{22}
+
+  \indexspace
+  \bigletter D
+  \item \spxentry{D()}\spxextra{in module killMS.Wirtinger.ClassSolPredictMachine}, \hyperpage{41}
+  \item \spxentry{datetime()}\spxextra{killMS.Data.sidereal.JulianDate method}, \hyperpage{13}
+  \item \spxentry{dayNo()}\spxextra{in module killMS.Data.sidereal}, \hyperpage{15}
+  \item \spxentry{defineImageList()}\spxextra{TestHarness.LongAcceptanceTests.TestLOFAR\_J1329\_p4729.TestLOFAR\_J1329\_p4729 class method}, 
+		\hyperpage{3}
+  \item \spxentry{defineMaxSquaredError()}\spxextra{TestHarness.LongAcceptanceTests.TestLOFAR\_J1329\_p4729.TestLOFAR\_J1329\_p4729 class method}, 
+		\hyperpage{4}
+  \item \spxentry{defMeanSquaredErrorLevel()}\spxextra{TestHarness.LongAcceptanceTests.TestLOFAR\_J1329\_p4729.TestLOFAR\_J1329\_p4729 class method}, 
+		\hyperpage{3}
+  \item \spxentry{DelAll()}\spxextra{in module killMS.Array.NpShared}, \hyperpage{5}
+  \item \spxentry{DelArray()}\spxextra{in module killMS.Array.NpShared}, \hyperpage{5}
+  \item \spxentry{DelData()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{8}
+  \item \spxentry{DicoToShared()}\spxextra{in module killMS.Array.NpShared}, \hyperpage{5}
+  \item \spxentry{DictToParset()}\spxextra{in module killMS.Other.ModParsetType}, \hyperpage{24}
+  \item \spxentry{disable()}\spxextra{in module killMS.Other.ModColor}, \hyperpage{23}
+  \item \spxentry{disable()}\spxextra{killMS.Other.ClassTimeIt.ClassTimeIt method}, \hyperpage{21}
+  \item \spxentry{draw()}\spxextra{killMS.Plot.Graph.ClassMplWidget method}, \hyperpage{35}
+  \item \spxentry{driver()}\spxextra{in module killMS.ClipCal}, \hyperpage{43}
+  \item \spxentry{driver()}\spxextra{in module killMS.dsc}, \hyperpage{44}
+  \item \spxentry{driver()}\spxextra{in module killMS.grepall}, \hyperpage{44}
+  \item \spxentry{driver()}\spxextra{in module killMS.kMS}, \hyperpage{45}
+  \item \spxentry{driver()}\spxextra{in module killMS.MergeSols}, \hyperpage{44}
+  \item \spxentry{dst()}\spxextra{killMS.Data.sidereal.FixedZone method}, \hyperpage{12}
+  \item \spxentry{dst()}\spxextra{killMS.Data.sidereal.USTimeZone method}, \hyperpage{15}
+  \item \spxentry{DST\_END\_2007}\spxextra{killMS.Data.sidereal.USTimeZone attribute}, 
+		\hyperpage{15}
+  \item \spxentry{DST\_END\_OLD}\spxextra{killMS.Data.sidereal.USTimeZone attribute}, 
+		\hyperpage{15}
+  \item \spxentry{DST\_START\_2007}\spxextra{killMS.Data.sidereal.USTimeZone attribute}, 
+		\hyperpage{15}
+  \item \spxentry{DST\_START\_OLD}\spxextra{killMS.Data.sidereal.USTimeZone attribute}, 
+		\hyperpage{15}
+
+  \indexspace
+  \bigletter E
+  \item \spxentry{enableIncr()}\spxextra{killMS.Other.ClassTimeIt.ClassTimeIt method}, 
+		\hyperpage{21}
+  \item \spxentry{Evolve()}\spxextra{killMS.Wirtinger.ClassEvolve.ClassModelEvolution method}, 
+		\hyperpage{41}
+  \item \spxentry{Evolve0()}\spxextra{killMS.Wirtinger.ClassEvolve.ClassModelEvolution method}, 
+		\hyperpage{41}
+
+  \indexspace
+  \bigletter F
+  \item \spxentry{factorB()}\spxextra{killMS.Data.sidereal.SiderealTime static method}, 
+		\hyperpage{14}
+  \item \spxentry{FilterOutliers()}\spxextra{killMS.MergeSols.ClassMergeSols method}, 
+		\hyperpage{43}
+  \item \spxentry{Finalise()}\spxextra{killMS.Parset.MyOptParse.MyOptParse method}, \hyperpage{29}
+  \item \spxentry{Finalise()}\spxextra{killMS.Weights.W\_DiagBL.ClassCovMat method}, \hyperpage{40}
+  \item \spxentry{findrms()}\spxextra{in module killMS.Other.findrms}, \hyperpage{26}
+  \item \spxentry{firstSundayOnOrAfter()}\spxextra{in module killMS.Data.sidereal}, \hyperpage{16}
+  \item \spxentry{FixedZone}\spxextra{class in killMS.Data.sidereal}, \hyperpage{12}
+  \item \spxentry{format()}\spxextra{killMS.Data.sidereal.MixedUnits method}, \hyperpage{13}
+  \item \spxentry{FormatDico()}\spxextra{in module killMS.Parset.ReadCFG}, \hyperpage{32}
+  \item \spxentry{FormatValue()}\spxextra{in module killMS.Parset.ReadCFG}, \hyperpage{32}
+  \item \spxentry{fromDatetime()}\spxextra{killMS.Data.sidereal.JulianDate static method}, 
+		\hyperpage{13}
+  \item \spxentry{fromDatetime()}\spxextra{killMS.Data.sidereal.SiderealTime static method}, 
+		\hyperpage{14}
+
+  \indexspace
+  \bigletter G
+  \item \spxentry{getWidth()}\spxextra{killMS.Other.ClassPrint.ClassPrint method}, \hyperpage{20}
+  \item \spxentry{getWidth()}\spxextra{killMS.Parset.ClassPrint.ClassPrint method}, \hyperpage{29}
+  \item \spxentry{give\_axis()}\spxextra{killMS.Plot.GiveRectSubplot.giveRectSubPlot method}, 
+		\hyperpage{34}
+  \item \spxentry{Give\_dUVW\_dt()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{9}
+  \item \spxentry{GiveArray()}\spxextra{in module killMS.Array.NpShared}, \hyperpage{5}
+  \item \spxentry{GiveBeam()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{8}
+  \item \spxentry{GiveClosestSol()}\spxextra{killMS.Wirtinger.ClassSolPredictMachine.ClassSolPredictMachine method}, 
+		\hyperpage{41}
+  \item \spxentry{GiveCol()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{8}
+  \item \spxentry{GiveDataChunk()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{8}
+  \item \spxentry{GiveDate()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{8}
+  \item \spxentry{GiveDicoConfig()}\spxextra{killMS.Parset.MyOptParse.MyOptParse method}, 
+		\hyperpage{30}
+  \item \spxentry{GiveKeyDest()}\spxextra{killMS.Parset.MyOptParse.MyOptParse method}, 
+		\hyperpage{30}
+  \item \spxentry{GiveKeysOut()}\spxextra{killMS.Parset.MyOptParse.MyOptParse method}, 
+		\hyperpage{30}
+  \item \spxentry{GiveMAD()}\spxextra{in module killMS.MergeSols}, \hyperpage{44}
+  \item \spxentry{GiveMainTable()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{9}
+  \item \spxentry{GiveMappingAnt()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{9}
+  \item \spxentry{GiveNoise()}\spxextra{in module killMS.kMS}, \hyperpage{45}
+  \item \spxentry{GiveNXNYPanels()}\spxextra{in module killMS.Plot.GiveNXNYPanels}, \hyperpage{34}
+  \item \spxentry{GiveOptionObject()}\spxextra{killMS.Parset.MyOptParse.MyOptParse method}, 
+		\hyperpage{30}
+  \item \spxentry{giveRect()}\spxextra{killMS.Plot.GiveRectSubplot.giveRectSubPlot method}, 
+		\hyperpage{34}
+  \item \spxentry{giveRectSubPlot}\spxextra{class in killMS.Plot.GiveRectSubplot}, \hyperpage{34}
+  \item \spxentry{GiveUvwBL()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{9}
+  \item \spxentry{GiveVisBL()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{9}
+  \item \spxentry{GiveVisBLChan()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{9}
+  \item \spxentry{giveWeigth()}\spxextra{killMS.Weights.W\_DiagBL.ClassCovMat method}, 
+		\hyperpage{40}
+  \item \spxentry{giveWeigthChunk()}\spxextra{killMS.Weights.W\_DiagBL.ClassCovMat method}, 
+		\hyperpage{40}
+  \item \spxentry{giveWeigthParallel()}\spxextra{killMS.Weights.W\_DiagBL.ClassCovMat method}, 
+		\hyperpage{40}
+  \item \spxentry{gst()}\spxextra{killMS.Data.sidereal.SiderealTime method}, \hyperpage{14}
+
+  \indexspace
+  \bigletter H
+  \item \spxentry{hourAngle()}\spxextra{killMS.Data.sidereal.RADec method}, \hyperpage{14}
+  \item \spxentry{hourAngleToRA()}\spxextra{in module killMS.Data.sidereal}, \hyperpage{16}
+  \item \spxentry{hoursToRadians()}\spxextra{in module killMS.Data.sidereal}, \hyperpage{16}
+
+  \indexspace
+  \bigletter I
+  \item \spxentry{imshow()}\spxextra{killMS.Plot.Graph.ClassMplWidget method}, \hyperpage{35}
+  \item \spxentry{IsChanEquidistant()}\spxextra{in module killMS.Other.ModChanEquidistant}, 
+		\hyperpage{22}
+
+  \indexspace
+  \bigletter J
+  \item \spxentry{JulianDate}\spxextra{class in killMS.Data.sidereal}, \hyperpage{12}
+
+  \indexspace
+  \bigletter K
+  \item \spxentry{killMS}
+    \subitem \spxentry{module}, \hyperpage{45}
+  \item \spxentry{killMS.Array}
+    \subitem \spxentry{module}, \hyperpage{7}
+  \item \spxentry{killMS.Array.Dot}
+    \subitem \spxentry{module}, \hyperpage{4}
+  \item \spxentry{killMS.Array.NpShared}
+    \subitem \spxentry{module}, \hyperpage{5}
+  \item \spxentry{killMS.Array.RecArrayOps}
+    \subitem \spxentry{module}, \hyperpage{7}
+  \item \spxentry{killMS.cbuild}
+    \subitem \spxentry{module}, \hyperpage{43}
+  \item \spxentry{killMS.cbuild.Array}
+    \subitem \spxentry{module}, \hyperpage{42}
+  \item \spxentry{killMS.cbuild.Array.Dot}
+    \subitem \spxentry{module}, \hyperpage{42}
+  \item \spxentry{killMS.cbuild.FindNumpyPath}
+    \subitem \spxentry{module}, \hyperpage{42}
+  \item \spxentry{killMS.cbuild.Gridder}
+    \subitem \spxentry{module}, \hyperpage{42}
+  \item \spxentry{killMS.cbuild.Predict}
+    \subitem \spxentry{module}, \hyperpage{42}
+  \item \spxentry{killMS.ClipCal}
+    \subitem \spxentry{module}, \hyperpage{43}
+  \item \spxentry{killMS.Data}
+    \subitem \spxentry{module}, \hyperpage{19}
+  \item \spxentry{killMS.Data.ClassMS}
+    \subitem \spxentry{module}, \hyperpage{7}
+  \item \spxentry{killMS.Data.ClassReCluster}
+    \subitem \spxentry{module}, \hyperpage{11}
+  \item \spxentry{killMS.Data.sidereal}
+    \subitem \spxentry{module}, \hyperpage{12}
+  \item \spxentry{killMS.dsc}
+    \subitem \spxentry{module}, \hyperpage{44}
+  \item \spxentry{killMS.grepall}
+    \subitem \spxentry{module}, \hyperpage{44}
+  \item \spxentry{killMS.Gridder}
+    \subitem \spxentry{module}, \hyperpage{19}
+  \item \spxentry{killMS.kMS}
+    \subitem \spxentry{module}, \hyperpage{45}
+  \item \spxentry{killMS.MergeSols}
+    \subitem \spxentry{module}, \hyperpage{43}
+  \item \spxentry{killMS.Other}
+    \subitem \spxentry{module}, \hyperpage{28}
+  \item \spxentry{killMS.Other.ClassPrint}
+    \subitem \spxentry{module}, \hyperpage{20}
+  \item \spxentry{killMS.Other.ClassTimeIt}
+    \subitem \spxentry{module}, \hyperpage{21}
+  \item \spxentry{killMS.Other.Counter}
+    \subitem \spxentry{module}, \hyperpage{22}
+  \item \spxentry{killMS.Other.findrms}
+    \subitem \spxentry{module}, \hyperpage{26}
+  \item \spxentry{killMS.Other.logo}
+    \subitem \spxentry{module}, \hyperpage{26}
+  \item \spxentry{killMS.Other.ModChanEquidistant}
+    \subitem \spxentry{module}, \hyperpage{22}
+  \item \spxentry{killMS.Other.ModColor}
+    \subitem \spxentry{module}, \hyperpage{23}
+  \item \spxentry{killMS.Other.ModParsetType}
+    \subitem \spxentry{module}, \hyperpage{24}
+  \item \spxentry{killMS.Other.MyPickle}
+    \subitem \spxentry{module}, \hyperpage{24}
+  \item \spxentry{killMS.Other.PrintOptParse}
+    \subitem \spxentry{module}, \hyperpage{25}
+  \item \spxentry{killMS.Other.rad2hmsdms}
+    \subitem \spxentry{module}, \hyperpage{27}
+  \item \spxentry{killMS.Other.reformat}
+    \subitem \spxentry{module}, \hyperpage{27}
+  \item \spxentry{killMS.Parset}
+    \subitem \spxentry{module}, \hyperpage{33}
+  \item \spxentry{killMS.Parset.ClassPrint}
+    \subitem \spxentry{module}, \hyperpage{28}
+  \item \spxentry{killMS.Parset.MyOptParse}
+    \subitem \spxentry{module}, \hyperpage{29}
+  \item \spxentry{killMS.Parset.PrintOptParse}
+    \subitem \spxentry{module}, \hyperpage{31}
+  \item \spxentry{killMS.Parset.ReadCFG}
+    \subitem \spxentry{module}, \hyperpage{32}
+  \item \spxentry{killMS.Plot}
+    \subitem \spxentry{module}, \hyperpage{37}
+  \item \spxentry{killMS.Plot.GiveNXNYPanels}
+    \subitem \spxentry{module}, \hyperpage{34}
+  \item \spxentry{killMS.Plot.GiveRectSubplot}
+    \subitem \spxentry{module}, \hyperpage{34}
+  \item \spxentry{killMS.Plot.Graph}
+    \subitem \spxentry{module}, \hyperpage{35}
+  \item \spxentry{killMS.Predict}
+    \subitem \spxentry{module}, \hyperpage{39}
+  \item \spxentry{killMS.Predict.ClassImageSM2}
+    \subitem \spxentry{module}, \hyperpage{37}
+  \item \spxentry{killMS.Simul}
+    \subitem \spxentry{module}, \hyperpage{39}
+  \item \spxentry{killMS.Weights}
+    \subitem \spxentry{module}, \hyperpage{40}
+  \item \spxentry{killMS.Weights.W\_DiagBL}
+    \subitem \spxentry{module}, \hyperpage{40}
+  \item \spxentry{killMS.Wirtinger}
+    \subitem \spxentry{module}, \hyperpage{41}
+  \item \spxentry{killMS.Wirtinger.ClassEvolve}
+    \subitem \spxentry{module}, \hyperpage{40}
+  \item \spxentry{killMS.Wirtinger.ClassSolPredictMachine}
+    \subitem \spxentry{module}, \hyperpage{41}
+
+  \indexspace
+  \bigletter L
+  \item \spxentry{LatLon}\spxextra{class in killMS.Data.sidereal}, \hyperpage{13}
+  \item \spxentry{ListNames()}\spxextra{in module killMS.Array.NpShared}, \hyperpage{5}
+  \item \spxentry{Load()}\spxextra{in module killMS.Other.MyPickle}, \hyperpage{24}
+  \item \spxentry{LoadDDFBeam()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{9}
+  \item \spxentry{LoadLOFAR\_ANTENNA\_FIELD()}\spxextra{killMS.Data.ClassMS.ClassMS method}, 
+		\hyperpage{9}
+  \item \spxentry{LoadModel()}\spxextra{killMS.Predict.ClassImageSM2.ClassPreparePredict method}, 
+		\hyperpage{38}
+  \item \spxentry{LoadSR()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{9}
+  \item \spxentry{lst()}\spxextra{killMS.Data.sidereal.SiderealTime method}, \hyperpage{14}
+
+  \indexspace
+  \bigletter M
+  \item \spxentry{main()}\spxextra{in module killMS.ClipCal}, \hyperpage{43}
+  \item \spxentry{main()}\spxextra{in module killMS.kMS}, \hyperpage{45}
+  \item \spxentry{main()}\spxextra{in module killMS.MergeSols}, \hyperpage{44}
+  \item \spxentry{MakeDicoMerged()}\spxextra{killMS.MergeSols.ClassMergeSols method}, 
+		\hyperpage{43}
+  \item \spxentry{MixedUnits}\spxextra{class in killMS.Data.sidereal}, \hyperpage{13}
+  \item \spxentry{mixToSingle()}\spxextra{killMS.Data.sidereal.MixedUnits method}, \hyperpage{13}
+  \item \spxentry{module}
+    \subitem \spxentry{killMS}, \hyperpage{45}
+    \subitem \spxentry{killMS.Array}, \hyperpage{7}
+    \subitem \spxentry{killMS.Array.Dot}, \hyperpage{4}
+    \subitem \spxentry{killMS.Array.NpShared}, \hyperpage{5}
+    \subitem \spxentry{killMS.Array.RecArrayOps}, \hyperpage{7}
+    \subitem \spxentry{killMS.cbuild}, \hyperpage{43}
+    \subitem \spxentry{killMS.cbuild.Array}, \hyperpage{42}
+    \subitem \spxentry{killMS.cbuild.Array.Dot}, \hyperpage{42}
+    \subitem \spxentry{killMS.cbuild.FindNumpyPath}, \hyperpage{42}
+    \subitem \spxentry{killMS.cbuild.Gridder}, \hyperpage{42}
+    \subitem \spxentry{killMS.cbuild.Predict}, \hyperpage{42}
+    \subitem \spxentry{killMS.ClipCal}, \hyperpage{43}
+    \subitem \spxentry{killMS.Data}, \hyperpage{19}
+    \subitem \spxentry{killMS.Data.ClassMS}, \hyperpage{7}
+    \subitem \spxentry{killMS.Data.ClassReCluster}, \hyperpage{11}
+    \subitem \spxentry{killMS.Data.sidereal}, \hyperpage{12}
+    \subitem \spxentry{killMS.dsc}, \hyperpage{44}
+    \subitem \spxentry{killMS.grepall}, \hyperpage{44}
+    \subitem \spxentry{killMS.Gridder}, \hyperpage{19}
+    \subitem \spxentry{killMS.kMS}, \hyperpage{45}
+    \subitem \spxentry{killMS.MergeSols}, \hyperpage{43}
+    \subitem \spxentry{killMS.Other}, \hyperpage{28}
+    \subitem \spxentry{killMS.Other.ClassPrint}, \hyperpage{20}
+    \subitem \spxentry{killMS.Other.ClassTimeIt}, \hyperpage{21}
+    \subitem \spxentry{killMS.Other.Counter}, \hyperpage{22}
+    \subitem \spxentry{killMS.Other.findrms}, \hyperpage{26}
+    \subitem \spxentry{killMS.Other.logo}, \hyperpage{26}
+    \subitem \spxentry{killMS.Other.ModChanEquidistant}, \hyperpage{22}
+    \subitem \spxentry{killMS.Other.ModColor}, \hyperpage{23}
+    \subitem \spxentry{killMS.Other.ModParsetType}, \hyperpage{24}
+    \subitem \spxentry{killMS.Other.MyPickle}, \hyperpage{24}
+    \subitem \spxentry{killMS.Other.PrintOptParse}, \hyperpage{25}
+    \subitem \spxentry{killMS.Other.rad2hmsdms}, \hyperpage{27}
+    \subitem \spxentry{killMS.Other.reformat}, \hyperpage{27}
+    \subitem \spxentry{killMS.Parset}, \hyperpage{33}
+    \subitem \spxentry{killMS.Parset.ClassPrint}, \hyperpage{28}
+    \subitem \spxentry{killMS.Parset.MyOptParse}, \hyperpage{29}
+    \subitem \spxentry{killMS.Parset.PrintOptParse}, \hyperpage{31}
+    \subitem \spxentry{killMS.Parset.ReadCFG}, \hyperpage{32}
+    \subitem \spxentry{killMS.Plot}, \hyperpage{37}
+    \subitem \spxentry{killMS.Plot.GiveNXNYPanels}, \hyperpage{34}
+    \subitem \spxentry{killMS.Plot.GiveRectSubplot}, \hyperpage{34}
+    \subitem \spxentry{killMS.Plot.Graph}, \hyperpage{35}
+    \subitem \spxentry{killMS.Predict}, \hyperpage{39}
+    \subitem \spxentry{killMS.Predict.ClassImageSM2}, \hyperpage{37}
+    \subitem \spxentry{killMS.Simul}, \hyperpage{39}
+    \subitem \spxentry{killMS.Weights}, \hyperpage{40}
+    \subitem \spxentry{killMS.Weights.W\_DiagBL}, \hyperpage{40}
+    \subitem \spxentry{killMS.Wirtinger}, \hyperpage{41}
+    \subitem \spxentry{killMS.Wirtinger.ClassEvolve}, \hyperpage{40}
+    \subitem \spxentry{killMS.Wirtinger.ClassSolPredictMachine}, \hyperpage{41}
+    \subitem \spxentry{TestHarness}, \hyperpage{4}
+    \subitem \spxentry{TestHarness.LongAcceptanceTests}, \hyperpage{4}
+    \subitem \spxentry{TestHarness.LongAcceptanceTests.TestLOFAR\_J1329\_p4729}, \hyperpage{3}
+  \item \spxentry{MyOptParse}\spxextra{class in killMS.Parset.MyOptParse}, \hyperpage{29}
+
+  \indexspace
+  \bigletter N
+  \item \spxentry{NormMatrices()}\spxextra{killMS.MergeSols.ClassMergeSols method}, \hyperpage{43}
+
+  \indexspace
+  \bigletter O
+  \item \spxentry{offset()}\spxextra{killMS.Data.sidereal.JulianDate method}, \hyperpage{13}
+  \item \spxentry{OptionGroup()}\spxextra{killMS.Parset.MyOptParse.MyOptParse method}, 
+		\hyperpage{30}
+
+  \indexspace
+  \bigletter P
+  \item \spxentry{PackListArray()}\spxextra{in module killMS.Array.NpShared}, \hyperpage{6}
+  \item \spxentry{parseAngle()}\spxextra{in module killMS.Data.sidereal}, \hyperpage{16}
+  \item \spxentry{parseDate()}\spxextra{in module killMS.Data.sidereal}, \hyperpage{16}
+  \item \spxentry{parseDatetime()}\spxextra{in module killMS.Data.sidereal}, \hyperpage{16}
+  \item \spxentry{parseFixedZone()}\spxextra{in module killMS.Data.sidereal}, \hyperpage{17}
+  \item \spxentry{parseFloat()}\spxextra{in module killMS.Data.sidereal}, \hyperpage{17}
+  \item \spxentry{parseFloatSuffix()}\spxextra{in module killMS.Data.sidereal}, \hyperpage{17}
+  \item \spxentry{parseHours()}\spxextra{in module killMS.Data.sidereal}, \hyperpage{17}
+  \item \spxentry{parseLat()}\spxextra{in module killMS.Data.sidereal}, \hyperpage{17}
+  \item \spxentry{parseLon()}\spxextra{in module killMS.Data.sidereal}, \hyperpage{18}
+  \item \spxentry{parseRe()}\spxextra{in module killMS.Data.sidereal}, \hyperpage{18}
+  \item \spxentry{Parset}\spxextra{class in killMS.Parset.ReadCFG}, \hyperpage{33}
+  \item \spxentry{parseTime()}\spxextra{in module killMS.Data.sidereal}, \hyperpage{18}
+  \item \spxentry{ParsetToDict()}\spxextra{in module killMS.Other.ModParsetType}, \hyperpage{24}
+  \item \spxentry{parseZone()}\spxextra{in module killMS.Data.sidereal}, \hyperpage{18}
+  \item \spxentry{plot()}\spxextra{killMS.Plot.Graph.ClassMplWidget method}, \hyperpage{36}
+  \item \spxentry{plotBL()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{11}
+  \item \spxentry{post\_imaging\_hook()}\spxextra{TestHarness.LongAcceptanceTests.TestLOFAR\_J1329\_p4729.TestLOFAR\_J1329\_p4729 class method}, 
+		\hyperpage{4}
+  \item \spxentry{pre\_imaging\_hook()}\spxextra{TestHarness.LongAcceptanceTests.TestLOFAR\_J1329\_p4729.TestLOFAR\_J1329\_p4729 class method}, 
+		\hyperpage{4}
+  \item \spxentry{PrepareGridMachinesMapping()}\spxextra{killMS.Predict.ClassImageSM2.ClassPreparePredict method}, 
+		\hyperpage{38}
+  \item \spxentry{Print()}\spxextra{killMS.Other.ClassPrint.ClassPrint method}, \hyperpage{20}
+  \item \spxentry{Print()}\spxextra{killMS.Parset.ClassPrint.ClassPrint method}, \hyperpage{28}
+  \item \spxentry{Print()}\spxextra{killMS.Parset.MyOptParse.MyOptParse method}, \hyperpage{30}
+  \item \spxentry{Print2()}\spxextra{killMS.Other.ClassPrint.ClassPrint method}, \hyperpage{20}
+  \item \spxentry{Print2()}\spxextra{killMS.Parset.ClassPrint.ClassPrint method}, \hyperpage{29}
+  \item \spxentry{print\_logo()}\spxextra{in module killMS.Other.logo}, \hyperpage{26}
+  \item \spxentry{PrintOptParse()}\spxextra{in module killMS.Other.PrintOptParse}, \hyperpage{25}
+  \item \spxentry{PrintOptParse()}\spxextra{in module killMS.Parset.PrintOptParse}, \hyperpage{32}
+  \item \spxentry{PutBackupCol()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{9}
+  \item \spxentry{PutCasaCols()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{10}
+  \item \spxentry{PutColInData()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{10}
+  \item \spxentry{PutLOFARKeys()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{10}
+  \item \spxentry{PutNewCol()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{10}
+
+  \indexspace
+  \bigletter R
+  \item \spxentry{rad2hmsdms()}\spxextra{in module killMS.Other.rad2hmsdms}, \hyperpage{27}
+  \item \spxentry{RADec}\spxextra{class in killMS.Data.sidereal}, \hyperpage{13}
+  \item \spxentry{raDec()}\spxextra{killMS.Data.sidereal.AltAz method}, \hyperpage{12}
+  \item \spxentry{radec2lm\_scalar()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{11}
+  \item \spxentry{radiansToHours()}\spxextra{in module killMS.Data.sidereal}, \hyperpage{18}
+  \item \spxentry{raToHourAngle()}\spxextra{in module killMS.Data.sidereal}, \hyperpage{18}
+  \item \spxentry{Read()}\spxextra{killMS.Parset.ReadCFG.Parset method}, \hyperpage{33}
+  \item \spxentry{read\_options()}\spxextra{in module killMS.ClipCal}, \hyperpage{43}
+  \item \spxentry{read\_options()}\spxextra{in module killMS.kMS}, \hyperpage{45}
+  \item \spxentry{read\_options()}\spxextra{in module killMS.MergeSols}, \hyperpage{44}
+  \item \spxentry{ReadData()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{10}
+  \item \spxentry{ReadInput()}\spxextra{killMS.Parset.MyOptParse.MyOptParse method}, \hyperpage{31}
+  \item \spxentry{ReadMSInfo()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{10}
+  \item \spxentry{ReClusterSkyModel()}\spxextra{killMS.Data.ClassReCluster.ClassReCluster method}, 
+		\hyperpage{11}
+  \item \spxentry{reformat()}\spxextra{in module killMS.Other.reformat}, \hyperpage{27}
+  \item \spxentry{reinit()}\spxextra{killMS.Other.ClassTimeIt.ClassTimeIt method}, \hyperpage{21}
+  \item \spxentry{report\_version()}\spxextra{in module killMS.Other.logo}, \hyperpage{26}
+  \item \spxentry{Restore()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{10}
+  \item \spxentry{Rotate()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{10}
+  \item \spxentry{RotateMS()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{10}
+  \item \spxentry{run()}\spxextra{killMS.Predict.ClassImageSM2.Worker method}, \hyperpage{38}
+
+  \indexspace
+  \bigletter S
+  \item \spxentry{Save()}\spxextra{in module killMS.Other.MyPickle}, \hyperpage{25}
+  \item \spxentry{Save()}\spxextra{killMS.MergeSols.ClassMergeSols method}, \hyperpage{43}
+  \item \spxentry{SaveAllDataStruct()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{10}
+  \item \spxentry{savefig()}\spxextra{killMS.Plot.Graph.ClassMplWidget method}, \hyperpage{36}
+  \item \spxentry{SaveVis()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{10}
+  \item \spxentry{Sep()}\spxextra{in module killMS.Other.ModColor}, \hyperpage{23}
+  \item \spxentry{set\_clim()}\spxextra{killMS.Plot.Graph.ClassMplWidget method}, \hyperpage{36}
+  \item \spxentry{set\_extent()}\spxextra{killMS.Plot.Graph.ClassMplWidget method}, \hyperpage{36}
+  \item \spxentry{set\_title()}\spxextra{killMS.Plot.Graph.ClassMplWidget method}, \hyperpage{36}
+  \item \spxentry{set\_xylims()}\spxextra{killMS.Plot.Graph.ClassMplWidget method}, \hyperpage{36}
+  \item \spxentry{setSaveName()}\spxextra{killMS.Plot.Graph.ClassMplWidget method}, \hyperpage{36}
+  \item \spxentry{SharedDicoDescriptor}\spxextra{class in killMS.Array.NpShared}, \hyperpage{6}
+  \item \spxentry{SharedObjectToDico()}\spxextra{in module killMS.Array.NpShared}, \hyperpage{6}
+  \item \spxentry{SharedToDico()}\spxextra{in module killMS.Array.NpShared}, \hyperpage{6}
+  \item \spxentry{shutdown()}\spxextra{killMS.Predict.ClassImageSM2.Worker method}, \hyperpage{38}
+  \item \spxentry{SIDEREAL\_C}\spxextra{killMS.Data.sidereal.SiderealTime attribute}, 
+		\hyperpage{14}
+  \item \spxentry{SiderealTime}\spxextra{class in killMS.Data.sidereal}, \hyperpage{14}
+  \item \spxentry{singleToMix()}\spxextra{killMS.Data.sidereal.MixedUnits method}, \hyperpage{13}
+  \item \spxentry{SortInFreq()}\spxextra{killMS.MergeSols.ClassMergeSols method}, \hyperpage{44}
+  \item \spxentry{Str()}\spxextra{in module killMS.Other.ModColor}, \hyperpage{23}
+  \item \spxentry{StrValPixel()}\spxextra{killMS.Plot.Graph.ClassMplWidget.ClassStrValPixel method}, 
+		\hyperpage{35}
+  \item \spxentry{subplot()}\spxextra{killMS.Plot.Graph.ClassMplWidget method}, \hyperpage{36}
+
+  \indexspace
+  \bigletter T
+  \item \spxentry{test()}\spxextra{in module killMS.MergeSols}, \hyperpage{44}
+  \item \spxentry{test()}\spxextra{in module killMS.Other.PrintOptParse}, \hyperpage{25}
+  \item \spxentry{test()}\spxextra{in module killMS.Parset.MyOptParse}, \hyperpage{31}
+  \item \spxentry{test()}\spxextra{in module killMS.Parset.PrintOptParse}, \hyperpage{32}
+  \item \spxentry{test()}\spxextra{in module killMS.Parset.ReadCFG}, \hyperpage{33}
+  \item \spxentry{test()}\spxextra{in module killMS.Plot.Graph}, \hyperpage{37}
+  \item \spxentry{test2()}\spxextra{in module killMS.Other.PrintOptParse}, \hyperpage{25}
+  \item \spxentry{test2()}\spxextra{in module killMS.Parset.PrintOptParse}, \hyperpage{32}
+  \item \spxentry{TestHarness}
+    \subitem \spxentry{module}, \hyperpage{4}
+  \item \spxentry{TestHarness.LongAcceptanceTests}
+    \subitem \spxentry{module}, \hyperpage{4}
+  \item \spxentry{TestHarness.LongAcceptanceTests.TestLOFAR\_J1329\_p4729}
+    \subitem \spxentry{module}, \hyperpage{3}
+  \item \spxentry{TestLOFAR\_J1329\_p4729}\spxextra{class in TestHarness.LongAcceptanceTests.TestLOFAR\_J1329\_p4729}, 
+		\hyperpage{3}
+  \item \spxentry{text()}\spxextra{killMS.Plot.Graph.ClassMplWidget method}, \hyperpage{36}
+  \item \spxentry{timeit()}\spxextra{killMS.Other.ClassTimeIt.ClassTimeIt method}, \hyperpage{21}
+  \item \spxentry{timeitHMS()}\spxextra{killMS.Other.ClassTimeIt.ClassTimeIt method}, 
+		\hyperpage{21}
+  \item \spxentry{timeoutsecs()}\spxextra{TestHarness.LongAcceptanceTests.TestLOFAR\_J1329\_p4729.TestLOFAR\_J1329\_p4729 class method}, 
+		\hyperpage{4}
+  \item \spxentry{Title()}\spxextra{in module killMS.Other.ModColor}, \hyperpage{23}
+  \item \spxentry{ToOrigFreqOrder()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{11}
+  \item \spxentry{ToParset()}\spxextra{killMS.Parset.MyOptParse.MyOptParse method}, \hyperpage{31}
+  \item \spxentry{toPix()}\spxextra{killMS.Plot.Graph.ClassMplWidget.ClassStrValPixel method}, 
+		\hyperpage{35}
+  \item \spxentry{ToShared()}\spxextra{in module killMS.Array.NpShared}, \hyperpage{6}
+  \item \spxentry{tzname()}\spxextra{killMS.Data.sidereal.FixedZone method}, \hyperpage{12}
+  \item \spxentry{tzname()}\spxextra{killMS.Data.sidereal.USTimeZone method}, \hyperpage{15}
+
+  \indexspace
+  \bigletter U
+  \item \spxentry{UnPackListArray()}\spxextra{in module killMS.Array.NpShared}, \hyperpage{6}
+  \item \spxentry{update()}\spxextra{killMS.Parset.ReadCFG.Parset method}, \hyperpage{33}
+  \item \spxentry{update()}\spxextra{killMS.Plot.Graph.ClassMplWidget method}, \hyperpage{37}
+  \item \spxentry{updateThread()}\spxextra{killMS.Plot.Graph.ClassMplWidget method}, \hyperpage{37}
+  \item \spxentry{updateThread2()}\spxextra{killMS.Plot.Graph.ClassMplWidget method}, 
+		\hyperpage{37}
+  \item \spxentry{USTimeZone}\spxextra{class in killMS.Data.sidereal}, \hyperpage{15}
+  \item \spxentry{utc()}\spxextra{killMS.Data.sidereal.SiderealTime method}, \hyperpage{14}
+  \item \spxentry{utcoffset()}\spxextra{killMS.Data.sidereal.FixedZone method}, \hyperpage{12}
+  \item \spxentry{utcoffset()}\spxextra{killMS.Data.sidereal.USTimeZone method}, \hyperpage{15}
+
+  \indexspace
+  \bigletter W
+  \item \spxentry{Worker}\spxextra{class in killMS.Predict.ClassImageSM2}, \hyperpage{38}
+
+  \indexspace
+  \bigletter Z
+  \item \spxentry{ZeroFlagSave()}\spxextra{killMS.Data.ClassMS.ClassMS method}, \hyperpage{11}
+  \item \spxentry{zeros()}\spxextra{in module killMS.Array.NpShared}, \hyperpage{6}
+
+\end{sphinxtheindex}
