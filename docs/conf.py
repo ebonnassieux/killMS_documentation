@@ -18,7 +18,7 @@ release = '0.1.0'
 import sys
 from pathlib import Path
 
-sys.path.insert(0,str(Path('../..',).resolve()))
+sys.path.insert(0,str(Path('~/Wirtinger',).resolve()))
 
 
 
