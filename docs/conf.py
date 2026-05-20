@@ -20,6 +20,8 @@ from pathlib import Path
 
 sys.path.insert(0,str(Path('../..',).resolve()))
 
+
+
 extensions = ["sphinx.ext.intersphinx",
               "sphinx.ext.autodoc",
               "sphinx.ext.autosummary",

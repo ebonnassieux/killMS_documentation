@@ -1,0 +1,5 @@
+
+To update the .rst files, run:
+
+sphinx-apidoc -o docs/api ~/Wirtinger/killMS/
+
