@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>killMS.ClipCal &#8212; killMS 0.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=27fed22d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+    <script src="../../_static/documentation_options.js?v=01f34227"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for killMS.ClipCal</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">absolute_import</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">division</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyrap.tables</span><span class="w"> </span><span class="kn">import</span> <span class="n">table</span>
+<span class="c1">#import pylab</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">optparse</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="c1">#import managecolumns</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">DDFacet.Other</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
+<span class="n">log</span><span class="o">=</span><span class="n">logger</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;ClipCal&quot;</span><span class="p">)</span>
+<span class="c1"># next line adapted for newer DDFacet versions</span>
+<span class="n">log</span><span class="o">.</span><span class="n">log_verbosity</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">logging</span><span class="o">.</span><span class="n">CRITICAL</span><span class="p">)</span>
+<span class="n">SaveFile</span><span class="o">=</span><span class="s2">&quot;ClipCal.last&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">killMS.Data</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClassMS</span>
+
+<div class="viewcode-block" id="ClassClipMachine">
+<a class="viewcode-back" href="../../api/killMS.html#killMS.ClipCal.ClassClipMachine">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ClassClipMachine</span><span class="p">():</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">MSName</span><span class="p">,</span><span class="n">Th</span><span class="o">=</span><span class="mf">20.</span><span class="p">,</span>
+                 <span class="n">ColName</span><span class="o">=</span><span class="s2">&quot;CORRECTED_DATA&quot;</span><span class="p">,</span>
+                 <span class="n">SubCol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">WeightCol</span><span class="o">=</span><span class="s2">&quot;IMAGING_WEIGHT&quot;</span><span class="p">,</span>
+                 <span class="n">ReinitWeights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">InFlagCol</span><span class="o">=</span><span class="s2">&quot;FLAG&quot;</span><span class="p">,</span>
+                 <span class="c1">#OutType=&quot;Weight&quot;</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">MSName</span><span class="o">=</span><span class="n">MSName</span>
+
+
+
+
+        <span class="n">t</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">t</span><span class="o">=</span><span class="n">table</span><span class="p">(</span><span class="n">MSName</span><span class="p">,</span><span class="n">ack</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+
+
+        
+        <span class="k">if</span> <span class="n">WeightCol</span><span class="o">==</span><span class="s2">&quot;FLAG&quot;</span> <span class="ow">and</span> <span class="s2">&quot;FLAG_BACKUP_CLIPCAL&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">t</span><span class="o">.</span><span class="n">colnames</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">MS</span><span class="o">=</span><span class="n">ClassMS</span><span class="o">.</span><span class="n">ClassMS</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">MSName</span><span class="p">,</span>
+                                    <span class="n">Col</span><span class="o">=</span><span class="n">ColName</span><span class="p">,</span>
+                                    <span class="n">DoReadData</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">MS</span><span class="o">.</span><span class="n">AddCol</span><span class="p">(</span><span class="s2">&quot;FLAG_BACKUP_CLIPCAL&quot;</span><span class="p">,</span><span class="n">LikeCol</span><span class="o">=</span><span class="s2">&quot;FLAG&quot;</span><span class="p">)</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">putcol</span><span class="p">(</span><span class="s2">&quot;FLAG_BACKUP_CLIPCAL&quot;</span><span class="p">,</span><span class="n">t</span><span class="o">.</span><span class="n">getcol</span><span class="p">(</span><span class="s2">&quot;FLAG&quot;</span><span class="p">))</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;Reading visibility column </span><span class="si">%s</span><span class="s2"> from </span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">ColName</span><span class="p">,</span><span class="n">MSName</span><span class="p">))</span>
+        <span class="n">vis</span><span class="o">=</span><span class="n">t</span><span class="o">.</span><span class="n">getcol</span><span class="p">(</span><span class="n">ColName</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">SubCol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;  Subtracting column </span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">SubCol</span><span class="p">)</span>
+            <span class="n">vis1</span><span class="o">=</span><span class="n">t</span><span class="o">.</span><span class="n">getcol</span><span class="p">(</span><span class="n">SubCol</span><span class="p">)</span>
+            <span class="n">vis</span><span class="o">-=</span><span class="n">vis1</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;  Reading flags column: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">InFlagCol</span><span class="p">)</span>
+        <span class="n">flag</span><span class="o">=</span><span class="n">t</span><span class="o">.</span><span class="n">getcol</span><span class="p">(</span><span class="n">InFlagCol</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span><span class="n">nch</span><span class="p">,</span><span class="n">npol</span><span class="o">=</span><span class="n">flag</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">Lch</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">Lch</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> <span class="c1"># slice(726,727)</span>
+        
+        <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nch</span><span class="p">)[</span><span class="n">Lch</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">ipol</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">npol</span><span class="p">):</span>
+                <span class="n">fs</span><span class="o">=</span><span class="n">flag</span><span class="p">[:,</span><span class="n">ch</span><span class="p">,</span><span class="n">ipol</span><span class="p">]</span>
+                <span class="n">ff</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">fs</span><span class="p">)</span><span class="o">/</span><span class="n">fs</span><span class="o">.</span><span class="n">size</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;[ch,pol, fracFlagged] = </span><span class="si">%i</span><span class="s2">, </span><span class="si">%i</span><span class="s2">, </span><span class="si">%f</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span><span class="n">ipol</span><span class="p">,</span><span class="n">ff</span><span class="p">))</span>
+                
+        <span class="n">log</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;  Zeroing flagged data&quot;</span><span class="p">)</span>
+        <span class="n">vis</span><span class="p">[</span><span class="n">flag</span><span class="o">==</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">WeightCol</span><span class="o">=</span><span class="n">WeightCol</span>
+
+        <span class="n">nrow</span><span class="p">,</span><span class="n">nch</span><span class="p">,</span><span class="n">_</span><span class="o">=</span><span class="n">vis</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">if</span> <span class="n">WeightCol</span> <span class="ow">in</span> <span class="n">t</span><span class="o">.</span><span class="n">colnames</span><span class="p">():</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;  Reading weights column </span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">WeightCol</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;!!!!!!!!!!!!!!!&quot;</span><span class="p">)</span>
+            <span class="n">W</span><span class="o">=</span><span class="n">t</span><span class="o">.</span><span class="n">getcol</span><span class="p">(</span><span class="n">WeightCol</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">WeightCol</span><span class="o">==</span><span class="s2">&quot;FLAG&quot;</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;  ... these are flags - taking ones complement to get weights&quot;</span><span class="p">)</span>
+                <span class="n">W</span><span class="o">=</span><span class="mi">1</span><span class="o">-</span><span class="n">W</span>
+                
+            <span class="k">if</span> <span class="n">ReinitWeights</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;  Initialise weights to one&quot;</span><span class="p">)</span>
+                <span class="n">W</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;  Column </span><span class="si">%s</span><span class="s2"> not present, creating ones-like weight array&quot;</span><span class="o">%</span><span class="n">WeightCol</span><span class="p">)</span>
+            <span class="n">W</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">nrow</span><span class="p">,</span><span class="n">nch</span><span class="p">),</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            
+        <span class="n">t</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">vis</span><span class="o">=</span><span class="n">vis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flag</span><span class="o">=</span><span class="n">flag</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">W</span><span class="o">=</span><span class="n">W</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Th</span><span class="o">=</span><span class="n">Th</span>
+        <span class="c1">#self.OutType=OutType</span>
+        
+<div class="viewcode-block" id="ClassClipMachine.ClipWeights">
+<a class="viewcode-back" href="../../api/killMS.html#killMS.ClipCal.ClassClipMachine.ClipWeights">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ClipWeights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">vis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vis</span>
+        <span class="n">flag</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">flag</span>
+        <span class="n">W</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">W</span>
+
+        <span class="n">nrow</span><span class="p">,</span><span class="n">nch</span><span class="p">,</span><span class="n">npol</span><span class="o">=</span><span class="n">vis</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="n">Lch</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">Lch</span>
+        
+        <span class="n">log</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;Fraction of zero-weighted visibilities previously non-flagged&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nch</span><span class="p">)[</span><span class="n">Lch</span><span class="p">]:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;Channel = </span><span class="si">%i</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">ch</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">pol</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">npol</span><span class="p">):</span>
+                <span class="n">f</span><span class="o">=</span><span class="p">(</span><span class="n">flag</span><span class="p">[:,</span><span class="n">ch</span><span class="p">,</span><span class="n">pol</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span>
+
+                
+                <span class="n">f1</span><span class="o">=</span><span class="p">(</span><span class="n">flag</span><span class="p">[:,</span><span class="n">ch</span><span class="p">,</span><span class="n">pol</span><span class="p">]</span><span class="o">==</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">W</span><span class="p">[</span><span class="n">f1</span><span class="p">,</span><span class="n">ch</span><span class="p">]</span><span class="o">=</span><span class="mi">0</span>
+                
+                <span class="n">ws</span><span class="o">=</span><span class="n">W</span><span class="p">[:,</span><span class="n">ch</span><span class="p">]</span>
+                <span class="c1"># frac0=np.count_nonzero(ws==0)/ws.size</span>
+                
+                <span class="n">AbsVis</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">vis</span><span class="p">[:,</span><span class="n">ch</span><span class="p">,</span><span class="n">pol</span><span class="p">])</span>
+                <span class="n">AbsVis_s</span><span class="o">=</span><span class="n">AbsVis</span><span class="p">[</span><span class="n">f</span><span class="p">]</span>
+                
+                <span class="k">if</span> <span class="n">AbsVis_s</span><span class="o">.</span><span class="n">size</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;  All data is flagged - skipping...&quot;</span><span class="p">)</span>
+                    <span class="k">continue</span>
+                
+                <span class="n">MAD</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">AbsVis_s</span><span class="p">)</span>
+                <span class="n">std</span><span class="o">=</span><span class="mf">1.48</span><span class="o">*</span><span class="n">MAD</span>
+                <span class="n">M</span><span class="o">=</span><span class="p">(</span><span class="n">AbsVis</span><span class="o">&gt;</span><span class="bp">self</span><span class="o">.</span><span class="n">Th</span><span class="o">*</span><span class="n">std</span><span class="p">)</span>
+                <span class="n">ind</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">M</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">W</span><span class="p">[</span><span class="n">ind</span><span class="p">,</span><span class="n">ch</span><span class="p">]</span><span class="o">=</span><span class="mi">0</span>
+
+                <span class="n">Ms</span><span class="o">=</span><span class="p">(</span><span class="n">AbsVis</span><span class="p">[</span><span class="n">f</span><span class="p">]</span><span class="o">&gt;</span><span class="bp">self</span><span class="o">.</span><span class="n">Th</span><span class="o">*</span><span class="n">std</span><span class="p">)</span>
+                <span class="n">nfg</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">Ms</span><span class="p">)</span>
+                <span class="n">frac</span><span class="o">=</span><span class="n">nfg</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">Ms</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+                <span class="n">ntot</span><span class="o">=</span><span class="n">Ms</span><span class="o">.</span><span class="n">size</span>
+
+                <span class="n">ws</span><span class="o">=</span><span class="n">W</span><span class="p">[:,</span><span class="n">ch</span><span class="p">]</span>
+                <span class="c1"># frac1=np.count_nonzero(ws==0)/ws.size</span>
+                <span class="c1"># log.print(&quot;  pol#%i %.7f -&gt; %.7f %% [n=%i/%i, &lt;rms&gt; = %f]&quot;%(pol,frac0*100.,frac1*100.,nfg,ntot,std))</span>
+
+
+        <span class="n">t</span><span class="o">=</span><span class="n">table</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">MSName</span><span class="p">,</span><span class="n">readonly</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">ack</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        
+        <span class="n">log</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;Writing </span><span class="si">%s</span><span class="s2"> in </span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">WeightCol</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">MSName</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">WeightCol</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">t</span><span class="o">.</span><span class="n">colnames</span><span class="p">():</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;Putting column </span><span class="si">%s</span><span class="s2"> in </span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">WeightCol</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">MSName</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">MS</span><span class="o">=</span><span class="n">ClassMS</span><span class="o">.</span><span class="n">ClassMS</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">MSName</span><span class="p">,</span>
+                                    <span class="n">Col</span><span class="o">=</span><span class="s2">&quot;DATA&quot;</span><span class="p">,</span>
+                                    <span class="n">DoReadData</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">MS</span><span class="o">.</span><span class="n">AddCol</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">WeightCol</span><span class="p">,</span><span class="n">ColDesc</span><span class="o">=</span><span class="s2">&quot;IMAGING_WEIGHT&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">WeightCol</span><span class="o">==</span><span class="s2">&quot;FLAG&quot;</span><span class="p">:</span>
+            <span class="c1">#Wf=W.reshape((nrow,nch))*np.ones((1,1,npol))</span>
+            <span class="c1">#W=Wf.astype(self.flag.dtype)</span>
+            <span class="n">W</span><span class="o">=</span><span class="p">(</span><span class="n">W</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nch</span><span class="p">)[</span><span class="n">Lch</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">pol</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">npol</span><span class="p">):</span>
+                    <span class="n">w</span><span class="o">=</span><span class="n">W</span><span class="p">[:,</span><span class="n">ch</span><span class="p">,</span><span class="n">pol</span><span class="p">]</span>
+                    <span class="n">ff</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">w</span><span class="p">)</span><span class="o">/</span><span class="n">w</span><span class="o">.</span><span class="n">size</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;[ch, pol, fracFlagged] = </span><span class="si">%i</span><span class="s2">, </span><span class="si">%i</span><span class="s2">, </span><span class="si">%f</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span><span class="n">pol</span><span class="p">,</span><span class="n">ff</span><span class="p">))</span>
+                
+            <span class="n">ff</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">W</span><span class="p">)</span><span class="o">/</span><span class="n">W</span><span class="o">.</span><span class="n">size</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;[fracFlaggedTotal] = </span><span class="si">%f</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">ff</span><span class="p">))</span>
+            
+            
+        <span class="n">t</span><span class="o">.</span><span class="n">putcol</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">WeightCol</span><span class="p">,</span><span class="n">W</span><span class="p">)</span>
+        
+        <span class="c1"># if self.OutType==&quot;Weight&quot;:</span>
+        <span class="c1">#     log.print(&quot;Writing %s in %s&quot;%(self.WeightCol,self.MSName))</span>
+        <span class="c1">#     self.MS.AddCol(self.WeightCol,ColDesc=&quot;IMAGING_WEIGHT&quot;)</span>
+        <span class="c1">#     if self.WeightCol==&quot;FLAG&quot;:</span>
+        <span class="c1">#         Wf=W*np.ones((1,1,4))</span>
+        <span class="c1">#         W=Wf.astype(self.flag.dtype)</span>
+        <span class="c1">#     t.putcol(self.WeightCol,W)</span>
+        <span class="c1"># elif self.OutType==&quot;Flag&quot;:</span>
+        <span class="c1">#     log.print(&quot;Writing %s in %s&quot;%(self.WeightCol,self.MSName))</span>
+        <span class="c1">#     if &quot;FLAG_BACKUP_CLIPCAL&quot; not in t.colnames():</span>
+        <span class="c1">#         self.MS.AddCol(&quot;FLAG_BACKUP_CLIPCAL&quot;,LikeCol=&quot;FLAG&quot;)</span>
+        <span class="c1">#         t.putcol(&quot;FLAG_BACKUP_CLIPCAL&quot;,t.getcol(&quot;FLAG&quot;))</span>
+        <span class="c1">#     if self.WeightCol==&quot;FLAG&quot;:</span>
+        <span class="c1">#         Wf=W*np.ones((1,1,4))</span>
+        <span class="c1">#         W=Wf.astype(self.flag.dtype)</span>
+        <span class="c1">#     t.putcol(self.WeightCol,W)</span>
+            
+        <span class="n">t</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="read_options">
+<a class="viewcode-back" href="../../api/killMS.html#killMS.ClipCal.read_options">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_options</span><span class="p">():</span>
+    <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;&quot;&quot; Questions and suggestions: cyril.tasse@obspm.fr&quot;&quot;&quot;</span>
+    
+    <span class="n">opt</span> <span class="o">=</span> <span class="n">optparse</span><span class="o">.</span><span class="n">OptionParser</span><span class="p">(</span><span class="n">usage</span><span class="o">=</span><span class="s1">&#39;Usage: %prog --ms=somename.MS &lt;options&gt;&#39;</span><span class="p">,</span><span class="n">version</span><span class="o">=</span><span class="s1">&#39;%prog version 1.0&#39;</span><span class="p">,</span><span class="n">description</span><span class="o">=</span><span class="n">desc</span><span class="p">)</span>
+    <span class="n">group</span> <span class="o">=</span> <span class="n">optparse</span><span class="o">.</span><span class="n">OptionGroup</span><span class="p">(</span><span class="n">opt</span><span class="p">,</span> <span class="s2">&quot;* Data-related options&quot;</span><span class="p">,</span> <span class="s2">&quot;Won&#39;t work if not specified.&quot;</span><span class="p">)</span>
+    <span class="n">group</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s1">&#39;--MSName&#39;</span><span class="p">,</span><span class="n">help</span><span class="o">=</span><span class="s1">&#39;Input MS to draw [no default]&#39;</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">group</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s1">&#39;--Th&#39;</span><span class="p">,</span><span class="n">help</span><span class="o">=</span><span class="s1">&#39;Level above which clip (in sigma. Default is &lt;MSName&gt;.</span><span class="si">%d</span><span class="s1">efault.&#39;</span><span class="p">,</span><span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="mf">20.</span><span class="p">)</span>
+    <span class="n">group</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s1">&#39;--ColName&#39;</span><span class="p">,</span><span class="n">help</span><span class="o">=</span><span class="s1">&#39;Input column. Default is </span><span class="si">%d</span><span class="s1">efault&#39;</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="s1">&#39;CORRECTED_DATA&#39;</span><span class="p">)</span>
+    <span class="n">group</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s1">&#39;--WeightCol&#39;</span><span class="p">,</span><span class="n">help</span><span class="o">=</span><span class="s1">&#39;Input column IMAGING_WEIGHT/FLAG. Default is </span><span class="si">%d</span><span class="s1">efault&#39;</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="s1">&#39;IMAGING_WEIGHT&#39;</span><span class="p">)</span>
+    <span class="n">group</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s1">&#39;--ReinitWeights&#39;</span><span class="p">,</span><span class="n">help</span><span class="o">=</span><span class="s1">&#39;Input column. Default is </span><span class="si">%d</span><span class="s1">efault&#39;</span><span class="p">,</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">group</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s1">&#39;--InFlagCol&#39;</span><span class="p">,</span><span class="n">help</span><span class="o">=</span><span class="s1">&#39;Input column (FLAG/FLAG_BACKUP_CLIPCAL). Default is </span><span class="si">%d</span><span class="s1">efault&#39;</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;FLAG&quot;</span><span class="p">)</span>
+    <span class="n">opt</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
+    <span class="n">options</span><span class="p">,</span> <span class="n">arguments</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">SaveFile</span><span class="p">,</span><span class="s2">&quot;wb&quot;</span><span class="p">)</span>
+    <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">options</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">options</span></div>
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../api/killMS.html#killMS.ClipCal.main">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    
+    <span class="k">if</span> <span class="n">options</span><span class="o">==</span><span class="kc">None</span><span class="p">:</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">SaveFile</span><span class="p">,</span><span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+        <span class="n">options</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;.txt&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="o">.</span><span class="n">MSName</span><span class="p">:</span>
+        <span class="n">LMSName</span> <span class="o">=</span> <span class="p">[</span> <span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">MSName</span><span class="p">)</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span> <span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">LMSName</span> <span class="o">=</span> <span class="p">[</span> <span class="n">options</span><span class="o">.</span><span class="n">MSName</span> <span class="p">]</span>
+
+    <span class="n">SubCol</span><span class="o">=</span><span class="kc">None</span>
+    <span class="k">if</span> <span class="s2">&quot;,&quot;</span> <span class="ow">in</span> <span class="n">options</span><span class="o">.</span><span class="n">ColName</span><span class="p">:</span>
+        <span class="n">ColName</span><span class="p">,</span><span class="n">SubCol</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">ColName</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ColName</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">ColName</span>
+        
+    <span class="k">for</span> <span class="n">MSName</span> <span class="ow">in</span> <span class="n">LMSName</span><span class="p">:</span>
+        <span class="n">CM</span><span class="o">=</span><span class="n">ClassClipMachine</span><span class="p">(</span><span class="n">MSName</span><span class="p">,</span><span class="n">options</span><span class="o">.</span><span class="n">Th</span><span class="p">,</span><span class="n">ColName</span><span class="p">,</span><span class="n">SubCol</span><span class="o">=</span><span class="n">SubCol</span><span class="p">,</span><span class="n">WeightCol</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">WeightCol</span><span class="p">,</span>
+                            <span class="n">ReinitWeights</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">ReinitWeights</span><span class="p">,</span><span class="n">InFlagCol</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">InFlagCol</span><span class="p">)</span>
+        <span class="n">CM</span><span class="o">.</span><span class="n">ClipWeights</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">LMSName</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;==========================================&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="driver">
+<a class="viewcode-back" href="../../api/killMS.html#killMS.ClipCal.driver">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">driver</span><span class="p">():</span>
+    <span class="n">options</span><span class="o">=</span><span class="n">read_options</span><span class="p">()</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">SaveFile</span><span class="p">,</span><span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">main</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span><span class="o">==</span><span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># do not place any other code here --- cannot be called as a package entrypoint otherwise, see:</span>
+    <span class="c1"># https://packaging.python.org/en/latest/specifications/entry-points/</span>
+    <span class="n">driver</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">killMS</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/modules.html">killMS</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Cyril Tasse.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

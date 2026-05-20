@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>killMS.Other package &#8212; killMS 0.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <script src="../_static/documentation_options.js?v=01f34227"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="killMS.Parset package" href="killMS.Parset.html" />
+    <link rel="prev" title="killMS.Gridder package" href="killMS.Gridder.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="killms-other-package">
+<h1>killMS.Other package<a class="headerlink" href="#killms-other-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="killms-other-classclip-module">
+<h2>killMS.Other.ClassClip module<a class="headerlink" href="#killms-other-classclip-module" title="Link to this heading">¶</a></h2>
+</section>
+<section id="killms-other-classfitamp-module">
+<h2>killMS.Other.ClassFitAmp module<a class="headerlink" href="#killms-other-classfitamp-module" title="Link to this heading">¶</a></h2>
+</section>
+<section id="killms-other-classfittec-module">
+<h2>killMS.Other.ClassFitTEC module<a class="headerlink" href="#killms-other-classfittec-module" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-killMS.Other.ClassPrint">
+<span id="killms-other-classprint-module"></span><h2>killMS.Other.ClassPrint module<a class="headerlink" href="#module-killMS.Other.ClassPrint" title="Link to this heading">¶</a></h2>
+<p>killMS, a package for calibration in radio interferometry.
+Copyright (C) 2013-2017  Cyril Tasse, l’Observatoire de Paris,
+SKA South Africa, Rhodes University</p>
+<p>This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.</p>
+<p>This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="killMS.Other.ClassPrint.ClassPrint">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">killMS.Other.ClassPrint.</span></span><span class="sig-name descname"><span class="pre">ClassPrint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">HW</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quote</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'&quot;'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/ClassPrint.html#ClassPrint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.ClassPrint.ClassPrint" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class that defines the terminal print parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>HW</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>quote</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="killMS.Other.ClassPrint.ClassPrint.Print">
+<span class="sig-name descname"><span class="pre">Print</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">par</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/ClassPrint.html#ClassPrint.Print"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.ClassPrint.ClassPrint.Print" title="Link to this definition">¶</a></dt>
+<dd><p>Print function to align logger outputs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> – ClassPrint</p></li>
+<li><p><strong>par</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Parameter to print value of</p></li>
+<li><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Value of the parameter</p></li>
+<li><p><strong>value2</strong> – Optional second parameter value</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="killMS.Other.ClassPrint.ClassPrint.Print2">
+<span class="sig-name descname"><span class="pre">Print2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">par</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">helpit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'white'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/ClassPrint.html#ClassPrint.Print2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.ClassPrint.ClassPrint.Print2" title="Link to this definition">¶</a></dt>
+<dd><p>Print function to align logger outputs, with colourful formatting.
+Prints out pretty logger.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> – ClassPrint</p></li>
+<li><p><strong>par</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – parameter to print value of</p></li>
+<li><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Value of the parameter</p></li>
+<li><p><strong>helpit</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Help string to be printed. Default is no help given.</p></li>
+<li><p><strong>col</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Colour of the print. Default is white.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="killMS.Other.ClassPrint.ClassPrint.getWidth">
+<span class="sig-name descname"><span class="pre">getWidth</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/ClassPrint.html#ClassPrint.getWidth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.ClassPrint.ClassPrint.getWidth" title="Link to this definition">¶</a></dt>
+<dd><p>Function to retrive current terminal size. Returns width.</p>
+<p>param self: ClassPrint</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-killMS.Other.ClassTimeIt">
+<span id="killms-other-classtimeit-module"></span><h2>killMS.Other.ClassTimeIt module<a class="headerlink" href="#module-killMS.Other.ClassTimeIt" title="Link to this heading">¶</a></h2>
+<p>killMS, a package for calibration in radio interferometry.
+Copyright (C) 2013-2017  Cyril Tasse, l’Observatoire de Paris,
+SKA South Africa, Rhodes University</p>
+<p>This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.</p>
+<p>This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="killMS.Other.ClassTimeIt.ClassTimeIt">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">killMS.Other.ClassTimeIt.</span></span><span class="sig-name descname"><span class="pre">ClassTimeIt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/ClassTimeIt.html#ClassTimeIt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.ClassTimeIt.ClassTimeIt" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Timing class for logging purposes.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="killMS.Other.ClassTimeIt.ClassTimeIt.AddDt">
+<span class="sig-name descname"><span class="pre">AddDt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Var</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/ClassTimeIt.html#ClassTimeIt.AddDt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.ClassTimeIt.ClassTimeIt.AddDt" title="Link to this definition">¶</a></dt>
+<dd><p>Finds current time, finds dt from t0,
+updates t0 to current time, and adds
+dt value to the input float.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="killMS.Other.ClassTimeIt.ClassTimeIt.disable">
+<span class="sig-name descname"><span class="pre">disable</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/ClassTimeIt.html#ClassTimeIt.disable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.ClassTimeIt.ClassTimeIt.disable" title="Link to this definition">¶</a></dt>
+<dd><p>Setter to disable the class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="killMS.Other.ClassTimeIt.ClassTimeIt.enableIncr">
+<span class="sig-name descname"><span class="pre">enableIncr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">incr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/ClassTimeIt.html#ClassTimeIt.enableIncr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.ClassTimeIt.ClassTimeIt.enableIncr" title="Link to this definition">¶</a></dt>
+<dd><p>Function to enable incrementation. Initialises Counter to 0.
+:param incr: not used
+:type incr: int</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="killMS.Other.ClassTimeIt.ClassTimeIt.reinit">
+<span class="sig-name descname"><span class="pre">reinit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/ClassTimeIt.html#ClassTimeIt.reinit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.ClassTimeIt.ClassTimeIt.reinit" title="Link to this definition">¶</a></dt>
+<dd><p>Reinitiatlise the timer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="killMS.Other.ClassTimeIt.ClassTimeIt.timeit">
+<span class="sig-name descname"><span class="pre">timeit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stri</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'</span> <span class="pre">Time'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/ClassTimeIt.html#ClassTimeIt.timeit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.ClassTimeIt.ClassTimeIt.timeit" title="Link to this definition">¶</a></dt>
+<dd><p>Time an event.
+:param stri: optional prefix
+:type stri: str
+:param hms: reformat time to HMS
+:type hms: bool</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="killMS.Other.ClassTimeIt.ClassTimeIt.timeitHMS">
+<span class="sig-name descname"><span class="pre">timeitHMS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stri</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'</span> <span class="pre">Time'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/ClassTimeIt.html#ClassTimeIt.timeitHMS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.ClassTimeIt.ClassTimeIt.timeitHMS" title="Link to this definition">¶</a></dt>
+<dd><p>Updates self.t0 to current time.
+:param stri: fofmating string, not used here.
+:type stri:str</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-killMS.Other.Counter">
+<span id="killms-other-counter-module"></span><h2>killMS.Other.Counter module<a class="headerlink" href="#module-killMS.Other.Counter" title="Link to this heading">¶</a></h2>
+<p>killMS, a package for calibration in radio interferometry.
+Copyright (C) 2013-2017  Cyril Tasse, l’Observatoire de Paris,
+SKA South Africa, Rhodes University</p>
+<p>This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.</p>
+<p>This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="killMS.Other.Counter.Counter">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">killMS.Other.Counter.</span></span><span class="sig-name descname"><span class="pre">Counter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/Counter.html#Counter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.Counter.Counter" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Counter class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>N</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="killMS.Other.Counter.CounterTime">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">killMS.Other.Counter.</span></span><span class="sig-name descname"><span class="pre">CounterTime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/Counter.html#CounterTime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.Counter.CounterTime" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Count for time, in batches of 60.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dt</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-killMS.Other.ModChanEquidistant">
+<span id="killms-other-modchanequidistant-module"></span><h2>killMS.Other.ModChanEquidistant module<a class="headerlink" href="#module-killMS.Other.ModChanEquidistant" title="Link to this heading">¶</a></h2>
+<p>killMS, a package for calibration in radio interferometry.
+Copyright (C) 2013-2017  Cyril Tasse, l’Observatoire de Paris,
+SKA South Africa, Rhodes University</p>
+<p>This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.</p>
+<p>This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="killMS.Other.ModChanEquidistant.IsChanEquidistant">
+<span class="sig-prename descclassname"><span class="pre">killMS.Other.ModChanEquidistant.</span></span><span class="sig-name descname"><span class="pre">IsChanEquidistant</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ChanFreq</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/ModChanEquidistant.html#IsChanEquidistant"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.ModChanEquidistant.IsChanEquidistant" title="Link to this definition">¶</a></dt>
+<dd><p>Function to determine if dataset channels are equidistant.
+TODO: check type of ChanFreq.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ChanFreq</strong> – Channel frequencies array.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-killMS.Other.ModColor">
+<span id="killms-other-modcolor-module"></span><h2>killMS.Other.ModColor module<a class="headerlink" href="#module-killMS.Other.ModColor" title="Link to this heading">¶</a></h2>
+<p>killMS, a package for calibration in radio interferometry.
+Copyright (C) 2013-2017  Cyril Tasse, l’Observatoire de Paris,
+SKA South Africa, Rhodes University</p>
+<p>This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.</p>
+<p>This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="killMS.Other.ModColor.Sep">
+<span class="sig-prename descclassname"><span class="pre">killMS.Other.ModColor.</span></span><span class="sig-name descname"><span class="pre">Sep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">strin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">D</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/ModColor.html#Sep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.ModColor.Sep" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a separator string, optionally annotated by the provided strin descriptor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>strin</strong> – Input value to be formatted</p></li>
+<li><p><strong>D</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – add input string as a Descriptor (?) for the separator</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="killMS.Other.ModColor.Str">
+<span class="sig-prename descclassname"><span class="pre">killMS.Other.ModColor.</span></span><span class="sig-name descname"><span class="pre">Str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">strin0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'red'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Bold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/ModColor.html#Str"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.ModColor.Str" title="Link to this definition">¶</a></dt>
+<dd><p>Function to format strings for terminal log. Returns formatted string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>strin0</strong> – Input value to format.</p></li>
+<li><p><strong>col</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – string colour</p></li>
+<li><p><strong>Bold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Description</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="killMS.Other.ModColor.Title">
+<span class="sig-prename descclassname"><span class="pre">killMS.Other.ModColor.</span></span><span class="sig-name descname"><span class="pre">Title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">strin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Big</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/ModColor.html#Title"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.ModColor.Title" title="Link to this definition">¶</a></dt>
+<dd><p>Prints the Title for a given section. If Big is true, adds additional separator
+lines at the top and bottom of the Title.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>strin</strong> – Title descriptor string.</p></li>
+<li><p><strong>Big</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Option to add extra sepatarators at top and bottom.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="killMS.Other.ModColor.disable">
+<span class="sig-prename descclassname"><span class="pre">killMS.Other.ModColor.</span></span><span class="sig-name descname"><span class="pre">disable</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/ModColor.html#disable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.ModColor.disable" title="Link to this definition">¶</a></dt>
+<dd><p>Function to set all logger environment variables to be empty: disables colourful logs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-killMS.Other.ModParsetType">
+<span id="killms-other-modparsettype-module"></span><h2>killMS.Other.ModParsetType module<a class="headerlink" href="#module-killMS.Other.ModParsetType" title="Link to this heading">¶</a></h2>
+<p>killMS, a package for calibration in radio interferometry.
+Copyright (C) 2013-2017  Cyril Tasse, l’Observatoire de Paris,
+SKA South Africa, Rhodes University</p>
+<p>This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.</p>
+<p>This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="killMS.Other.ModParsetType.DictToParset">
+<span class="sig-prename descclassname"><span class="pre">killMS.Other.ModParsetType.</span></span><span class="sig-name descname"><span class="pre">DictToParset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fout</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/ModParsetType.html#DictToParset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.ModParsetType.DictToParset" title="Link to this definition">¶</a></dt>
+<dd><p>Function to write Dict to Parset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Dict</strong> – Dictionary to write out</p></li>
+<li><p><strong>fout</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Filename to write Dict to</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="killMS.Other.ModParsetType.ParsetToDict">
+<span class="sig-prename descclassname"><span class="pre">killMS.Other.ModParsetType.</span></span><span class="sig-name descname"><span class="pre">ParsetToDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/ModParsetType.html#ParsetToDict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.ModParsetType.ParsetToDict" title="Link to this definition">¶</a></dt>
+<dd><p>Function to convert parset to dictionary.
+Returns Dict</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Filename to read from</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-killMS.Other.MyPickle">
+<span id="killms-other-mypickle-module"></span><h2>killMS.Other.MyPickle module<a class="headerlink" href="#module-killMS.Other.MyPickle" title="Link to this heading">¶</a></h2>
+<p>killMS, a package for calibration in radio interferometry.
+Copyright (C) 2013-2017  Cyril Tasse, l’Observatoire de Paris,
+SKA South Africa, Rhodes University</p>
+<p>This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.</p>
+<p>This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="killMS.Other.MyPickle.Load">
+<span class="sig-prename descclassname"><span class="pre">killMS.Other.MyPickle.</span></span><span class="sig-name descname"><span class="pre">Load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filein</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/MyPickle.html#Load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.MyPickle.Load" title="Link to this definition">¶</a></dt>
+<dd><p>Custom pickle Load function. Returns object and values.
+TODO: how to type this? is it always a dict?</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filein</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – filename to be loaded</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="killMS.Other.MyPickle.Save">
+<span class="sig-prename descclassname"><span class="pre">killMS.Other.MyPickle.</span></span><span class="sig-name descname"><span class="pre">Save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileout</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/MyPickle.html#Save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.MyPickle.Save" title="Link to this definition">¶</a></dt>
+<dd><p>Custom pickle Save function</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Obj</strong> – Object to be pickled</p></li>
+<li><p><strong>fileout</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Pickle filename</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-killMS.Other.PrintOptParse">
+<span id="killms-other-printoptparse-module"></span><h2>killMS.Other.PrintOptParse module<a class="headerlink" href="#module-killMS.Other.PrintOptParse" title="Link to this heading">¶</a></h2>
+<p>killMS, a package for calibration in radio interferometry.
+Copyright (C) 2013-2017  Cyril Tasse, l’Observatoire de Paris,
+SKA South Africa, Rhodes University</p>
+<p>This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.</p>
+<p>This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="killMS.Other.PrintOptParse.PrintOptParse">
+<span class="sig-prename descclassname"><span class="pre">killMS.Other.PrintOptParse.</span></span><span class="sig-name descname"><span class="pre">PrintOptParse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ValObj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RejectGroup</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/PrintOptParse.html#PrintOptParse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.PrintOptParse.PrintOptParse" title="Link to this definition">¶</a></dt>
+<dd><p>Function to print OptParse dictionary values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Obj</strong> – Object, first output of MyPickle invocation</p></li>
+<li><p><strong>ValObj</strong> – Object values, second output of MyPickle invocation</p></li>
+<li><p><strong>RejectGroup</strong> – Array including titles to skip the print of.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="killMS.Other.PrintOptParse.test">
+<span class="sig-prename descclassname"><span class="pre">killMS.Other.PrintOptParse.</span></span><span class="sig-name descname"><span class="pre">test</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/PrintOptParse.html#test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.PrintOptParse.test" title="Link to this definition">¶</a></dt>
+<dd><p>Unit test function for MyOptParse.
+TODO: Harmonise with other unit tests as pytest module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="killMS.Other.PrintOptParse.test2">
+<span class="sig-prename descclassname"><span class="pre">killMS.Other.PrintOptParse.</span></span><span class="sig-name descname"><span class="pre">test2</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/PrintOptParse.html#test2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.PrintOptParse.test2" title="Link to this definition">¶</a></dt>
+<dd><p>Second unit test for MyOptParse.
+Tests whether CohJones gets rejected when KAFCA is invoked?</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-killMS.Other.findrms">
+<span id="killms-other-findrms-module"></span><h2>killMS.Other.findrms module<a class="headerlink" href="#module-killMS.Other.findrms" title="Link to this heading">¶</a></h2>
+<p>killMS, a package for calibration in radio interferometry.
+Copyright (C) 2013-2017  Cyril Tasse, l’Observatoire de Paris,
+SKA South Africa, Rhodes University</p>
+<p>This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.</p>
+<p>This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="killMS.Other.findrms.findrms">
+<span class="sig-prename descclassname"><span class="pre">killMS.Other.findrms.</span></span><span class="sig-name descname"><span class="pre">findrms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mIn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maskSup</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-07</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/findrms.html#findrms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.findrms.findrms" title="Link to this definition">¶</a></dt>
+<dd><p>Function to estimate the root-mean-square noise of an mIn array(?)
+Returns rms value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mIn</strong> – Input array.</p></li>
+<li><p><strong>maskSup</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – threshold above which values are ignored.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="killms-other-least-squares-module">
+<h2>killMS.Other.least_squares module<a class="headerlink" href="#killms-other-least-squares-module" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-killMS.Other.logo">
+<span id="killms-other-logo-module"></span><h2>killMS.Other.logo module<a class="headerlink" href="#module-killMS.Other.logo" title="Link to this heading">¶</a></h2>
+<p>killMS, a package for calibration in radio interferometry.
+Copyright (C) 2013-2017  Cyril Tasse, l’Observatoire de Paris,
+SKA South Africa, Rhodes University</p>
+<p>This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.</p>
+<p>This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="killMS.Other.logo.print_logo">
+<span class="sig-prename descclassname"><span class="pre">killMS.Other.logo.</span></span><span class="sig-name descname"><span class="pre">print_logo</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/logo.html#print_logo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.logo.print_logo" title="Link to this definition">¶</a></dt>
+<dd><p>Prints a cute killMS ASCII art block, with version.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="killMS.Other.logo.report_version">
+<span class="sig-prename descclassname"><span class="pre">killMS.Other.logo.</span></span><span class="sig-name descname"><span class="pre">report_version</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/logo.html#report_version"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.logo.report_version" title="Link to this definition">¶</a></dt>
+<dd><p>Function to find and return the current version of killMS.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-killMS.Other.rad2hmsdms">
+<span id="killms-other-rad2hmsdms-module"></span><h2>killMS.Other.rad2hmsdms module<a class="headerlink" href="#module-killMS.Other.rad2hmsdms" title="Link to this heading">¶</a></h2>
+<p>killMS, a package for calibration in radio interferometry.
+Copyright (C) 2013-2017  Cyril Tasse, l’Observatoire de Paris,
+SKA South Africa, Rhodes University</p>
+<p>This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.</p>
+<p>This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="killMS.Other.rad2hmsdms.rad2hmsdms">
+<span class="sig-prename descclassname"><span class="pre">killMS.Other.rad2hmsdms.</span></span><span class="sig-name descname"><span class="pre">rad2hmsdms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dec'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/rad2hmsdms.html#rad2hmsdms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.rad2hmsdms.rad2hmsdms" title="Link to this definition">¶</a></dt>
+<dd><p>Converts radians to SkyCoord.to_string(‘hmsdms’) equivalent.
+Deprecated, should be replaced with astropy function and units.
+Returns HMS string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rad</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Input angle in radians.</p></li>
+<li><p><strong>Type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Checks if declination or hour angle (RA). Converts properly.</p></li>
+<li><p><strong>deg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Option to take in deg and convert to rad.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-killMS.Other.reformat">
+<span id="killms-other-reformat-module"></span><h2>killMS.Other.reformat module<a class="headerlink" href="#module-killMS.Other.reformat" title="Link to this heading">¶</a></h2>
+<p>killMS, a package for calibration in radio interferometry.
+Copyright (C) 2013-2017  Cyril Tasse, l’Observatoire de Paris,
+SKA South Africa, Rhodes University</p>
+<p>This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.</p>
+<p>This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="killMS.Other.reformat.reformat">
+<span class="sig-prename descclassname"><span class="pre">killMS.Other.reformat.</span></span><span class="sig-name descname"><span class="pre">reformat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ssin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">LastSlash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/killMS/Other/reformat.html#reformat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#killMS.Other.reformat.reformat" title="Link to this definition">¶</a></dt>
+<dd><p>Function that takes in a string and returns it reformatted.
+Formatting involves: keeping prefix and suffix slashes (slash=True)</p>
+<blockquote>
+<div><p>keeping only suffix slash (LastSlash=True)
+if both are true, prefix and suffix are kept</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ssin</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Input string</p></li>
+<li><p><strong>slash</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – do we keep prefix and suffix slaches</p></li>
+<li><p><strong>LastSlash</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – do we keep suffix slash</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-killMS.Other">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-killMS.Other" title="Link to this heading">¶</a></h2>
+<p>killMS, a package for calibration in radio interferometry.
+Copyright (C) 2013-2017  Cyril Tasse, l’Observatoire de Paris,
+SKA South Africa, Rhodes University</p>
+<p>This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.</p>
+<p>This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">killMS</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">killMS</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="TestHarness.html">TestHarness package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="killMS.html">killMS package</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">killMS</a><ul>
+  <li><a href="killMS.html">killMS package</a><ul>
+      <li>Previous: <a href="killMS.Gridder.html" title="previous chapter">killMS.Gridder package</a></li>
+      <li>Next: <a href="killMS.Parset.html" title="next chapter">killMS.Parset package</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Cyril Tasse.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../_sources/api/killMS.Other.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

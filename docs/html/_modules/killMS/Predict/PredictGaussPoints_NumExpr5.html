@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>killMS.Predict.PredictGaussPoints_NumExpr5 &#8212; killMS 0.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <script src="../../../_static/documentation_options.js?v=01f34227"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for killMS.Predict.PredictGaussPoints_NumExpr5</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">killMS, a package for calibration in radio interferometry.</span>
+<span class="sd">Copyright (C) 2013-2017  Cyril Tasse, l&#39;Observatoire de Paris,</span>
+<span class="sd">SKA South Africa, Rhodes University</span>
+
+<span class="sd">This program is free software; you can redistribute it and/or</span>
+<span class="sd">modify it under the terms of the GNU General Public License</span>
+<span class="sd">as published by the Free Software Foundation; either version 2</span>
+<span class="sd">of the License, or (at your option) any later version.</span>
+
+<span class="sd">This program is distributed in the hope that it will be useful,</span>
+<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="sd">GNU General Public License for more details.</span>
+
+<span class="sd">You should have received a copy of the GNU General Public License</span>
+<span class="sd">along with this program; if not, write to the Free Software</span>
+<span class="sd">Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">absolute_import</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">division</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">casacore.tables</span><span class="w"> </span><span class="kn">import</span> <span class="n">table</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">killMS.Data.ClassMS</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClassMS</span>
+<span class="c1">#from Sky.ClassSM import ClassSM</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">killMS.Other.ClassTimeIt</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClassTimeIt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numexpr</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ne</span>
+<span class="c1">#import ModNumExpr</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">multiprocessing</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">killMS.Array</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModLinAlg</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">killMS.Array</span><span class="w"> </span><span class="kn">import</span> <span class="n">NpShared</span>
+<span class="c1">#ne.evaluate=lambda sin: (&quot;return %s&quot;%sin)</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">six</span>
+<span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">killMS.Predict</span><span class="w"> </span><span class="kn">import</span> <span class="n">predict27</span> <span class="k">as</span> <span class="n">predict</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">killMS.cbuild.Predict</span><span class="w"> </span><span class="kn">import</span> <span class="n">predict27</span> <span class="k">as</span> <span class="n">predict</span>
+<span class="k">elif</span> <span class="n">six</span><span class="o">.</span><span class="n">PY3</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">killMS.cbuild.Predict</span><span class="w"> </span><span class="kn">import</span> <span class="n">predict3x</span> <span class="k">as</span> <span class="n">predict</span> 
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">killMS.Other</span><span class="w"> </span><span class="kn">import</span> <span class="n">findrms</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">killMS.Other</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModColor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">killMS.Other.ModChanEquidistant</span><span class="w"> </span><span class="kn">import</span> <span class="n">IsChanEquidistant</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">DDFacet.Array</span><span class="w"> </span><span class="kn">import</span> <span class="n">shared_dict</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">DDFacet.Imager</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClassDDEGridMachine</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+<span class="c1"># def SolsToDicoJones(Sols,nf):</span>
+<span class="c1">#     Jones={}</span>
+<span class="c1">#     Jones[&quot;t0&quot;]=Sols.t0</span>
+<span class="c1">#     Jones[&quot;t1&quot;]=Sols.t1</span>
+<span class="c1">#     nt,na,nd,_,_=Sols.G.shape</span>
+<span class="c1">#     G=np.swapaxes(Sols.G,1,2).reshape((nt,nd,na,1,2,2))</span>
+<span class="c1">#     Jones[&quot;Beam&quot;]=G</span>
+<span class="c1">#     Jones[&quot;BeamH&quot;]=ModLinAlg.BatchH(G)</span>
+<span class="c1">#     Jones[&quot;ChanMap&quot;]=np.zeros((nf,))#.tolist()</span>
+<span class="c1">#     return Jones</span>
+
+
+
+
+
+<span class="c1">####################################################</span>
+<span class="c1">####################################################</span>
+
+
+
+<div class="viewcode-block" id="ClassPredict">
+<a class="viewcode-back" href="../../../api/killMS.Predict.html#killMS.Predict.PredictGaussPoints_NumExpr5.ClassPredict">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ClassPredict</span><span class="p">():</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">Precision</span><span class="o">=</span><span class="s2">&quot;S&quot;</span><span class="p">,</span><span class="n">NCPU</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span><span class="n">IdMemShared</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">DoSmearing</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="n">BeamAtFacet</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">LExp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">LSinc</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NCPU</span><span class="o">=</span><span class="n">NCPU</span>
+        <span class="n">ne</span><span class="o">.</span><span class="n">set_num_threads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">NCPU</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">Precision</span><span class="o">==</span><span class="s2">&quot;D&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CType</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex128</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">FType</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span>
+        <span class="k">if</span> <span class="n">Precision</span><span class="o">==</span><span class="s2">&quot;S&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CType</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex64</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">FType</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DoSmearing</span><span class="o">=</span><span class="n">DoSmearing</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">IdSharedMem</span><span class="o">=</span><span class="n">IdMemShared</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_BeamAtFacet</span> <span class="o">=</span> <span class="n">BeamAtFacet</span>
+        
+        <span class="n">Np</span><span class="o">=</span><span class="mi">2</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">DoSmearing</span><span class="o">!=</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">((</span><span class="s2">&quot;F&quot;</span> <span class="ow">in</span> <span class="n">DoSmearing</span><span class="p">)</span><span class="ow">or</span><span class="p">(</span><span class="s2">&quot;T&quot;</span> <span class="ow">in</span> <span class="n">DoSmearing</span><span class="p">)):</span> <span class="n">Np</span><span class="o">=</span><span class="mi">100000</span>
+
+
+            
+        <span class="k">if</span> <span class="n">LExp</span><span class="o">==</span><span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="n">Np</span><span class="p">)</span>
+            <span class="n">Exp</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">x</span><span class="p">))</span>
+            <span class="n">LExp</span><span class="o">=</span><span class="p">[</span><span class="n">Exp</span><span class="p">,</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">LExp</span><span class="o">=</span><span class="n">LExp</span>
+
+        <span class="k">if</span> <span class="n">LSinc</span><span class="o">==</span><span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="n">Np</span><span class="p">)</span>
+            <span class="n">Sinc</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="n">Sinc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="mf">1.</span>
+            <span class="n">Sinc</span><span class="p">[</span><span class="mi">1</span><span class="p">::]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">::])</span><span class="o">/</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">::])</span>
+            <span class="n">LSinc</span><span class="o">=</span><span class="p">[</span><span class="n">Sinc</span><span class="p">,</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            
+            <span class="c1">#phi=1.471034</span>
+            <span class="c1">#d=int(phi/(x[1]-x[0]))</span>
+            <span class="c1">#print Sinc[d],np.sin(phi)/(phi)</span>
+            <span class="c1">#stop</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">LSinc</span><span class="o">=</span><span class="n">LSinc</span>
+
+
+
+<div class="viewcode-block" id="ClassPredict.ApplyCal">
+<a class="viewcode-back" href="../../../api/killMS.Predict.html#killMS.Predict.PredictGaussPoints_NumExpr5.ClassPredict.ApplyCal">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ApplyCal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">DicoData</span><span class="p">,</span>
+                 <span class="n">ApplyTimeJones</span><span class="p">,</span>
+                 <span class="n">iCluster</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Apply gain correction to visibilities&#39;&#39;&#39;</span>
+        <span class="n">D</span><span class="o">=</span><span class="n">ApplyTimeJones</span>
+        <span class="n">Jones</span><span class="o">=</span><span class="n">D</span><span class="p">[</span><span class="s2">&quot;Jones&quot;</span><span class="p">]</span>
+        <span class="n">JonesH</span><span class="o">=</span><span class="n">D</span><span class="p">[</span><span class="s2">&quot;JonesH&quot;</span><span class="p">]</span>
+        <span class="n">lt0</span><span class="p">,</span><span class="n">lt1</span><span class="o">=</span><span class="n">D</span><span class="p">[</span><span class="s2">&quot;t0&quot;</span><span class="p">],</span><span class="n">D</span><span class="p">[</span><span class="s2">&quot;t1&quot;</span><span class="p">]</span>
+        <span class="n">ColOutDir</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span>
+        <span class="n">A0</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;A0&quot;</span><span class="p">]</span>
+        <span class="n">A1</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;A1&quot;</span><span class="p">]</span>
+        <span class="n">times</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;times&quot;</span><span class="p">]</span>
+        <span class="n">na</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;infos&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+
+        
+        <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">lt0</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+            
+            <span class="n">t0</span><span class="p">,</span><span class="n">t1</span><span class="o">=</span><span class="n">lt0</span><span class="p">[</span><span class="n">it</span><span class="p">],</span><span class="n">lt1</span><span class="p">[</span><span class="n">it</span><span class="p">]</span>
+            <span class="n">ind</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">times</span><span class="o">&gt;=</span><span class="n">t0</span><span class="p">)</span><span class="o">&amp;</span><span class="p">(</span><span class="n">times</span><span class="o">&lt;</span><span class="n">t1</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">ind</span><span class="o">.</span><span class="n">size</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">ColOutDir</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+            <span class="c1"># flags=DicoData[&quot;flags&quot;][ind]</span>
+            <span class="n">A0sel</span><span class="o">=</span><span class="n">A0</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+            <span class="n">A1sel</span><span class="o">=</span><span class="n">A1</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+            
+            <span class="k">if</span> <span class="s2">&quot;Map_VisToJones_Freq&quot;</span> <span class="ow">in</span> <span class="n">ApplyTimeJones</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">ChanMap</span><span class="o">=</span><span class="n">ApplyTimeJones</span><span class="p">[</span><span class="s2">&quot;Map_VisToJones_Freq&quot;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ChanMap</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="n">nf</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">ichan</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ChanMap</span><span class="p">)):</span>
+                <span class="n">JChan</span><span class="o">=</span><span class="n">ChanMap</span><span class="p">[</span><span class="n">ichan</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">iCluster</span><span class="o">!=-</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="n">J0</span><span class="o">=</span><span class="n">Jones</span><span class="p">[</span><span class="n">it</span><span class="p">,</span><span class="n">iCluster</span><span class="p">,:,</span><span class="n">JChan</span><span class="p">,:,:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">na</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+                    <span class="n">JH0</span><span class="o">=</span><span class="n">JonesH</span><span class="p">[</span><span class="n">it</span><span class="p">,</span><span class="n">iCluster</span><span class="p">,:,</span><span class="n">JChan</span><span class="p">,:,:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">na</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">J0</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">Jones</span><span class="p">[</span><span class="n">it</span><span class="p">,:,:,</span><span class="n">JChan</span><span class="p">,:,:],</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">na</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+                    <span class="n">JH0</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">JonesH</span><span class="p">[</span><span class="n">it</span><span class="p">,:,:,</span><span class="n">JChan</span><span class="p">,:,:],</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">na</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+                
+                <span class="n">J</span><span class="o">=</span><span class="n">ModLinAlg</span><span class="o">.</span><span class="n">BatchInverse</span><span class="p">(</span><span class="n">J0</span><span class="p">)</span>
+                <span class="n">JH</span><span class="o">=</span><span class="n">ModLinAlg</span><span class="o">.</span><span class="n">BatchInverse</span><span class="p">(</span><span class="n">JH0</span><span class="p">)</span>
+
+                <span class="n">data</span><span class="p">[:,</span><span class="n">ichan</span><span class="p">,:]</span><span class="o">=</span><span class="n">ModLinAlg</span><span class="o">.</span><span class="n">BatchDot</span><span class="p">(</span><span class="n">J</span><span class="p">[</span><span class="n">A0sel</span><span class="p">,:],</span><span class="n">data</span><span class="p">[:,</span><span class="n">ichan</span><span class="p">,:])</span>
+                <span class="n">data</span><span class="p">[:,</span><span class="n">ichan</span><span class="p">,:]</span><span class="o">=</span><span class="n">ModLinAlg</span><span class="o">.</span><span class="n">BatchDot</span><span class="p">(</span><span class="n">data</span><span class="p">[:,</span><span class="n">ichan</span><span class="p">,:],</span><span class="n">JH</span><span class="p">[</span><span class="n">A1sel</span><span class="p">,:])</span>
+
+                <span class="c1"># Abs_g0=(np.abs(J0[A0sel,0])&lt;Threshold)</span>
+                <span class="c1"># Abs_g1=(np.abs(JH0[A1sel,0])&lt;Threshold)</span>
+                <span class="c1"># flags[Abs_g0,ichan,:]=True</span>
+                <span class="c1"># flags[Abs_g1,ichan,:]=True</span>
+
+            <span class="n">ColOutDir</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span><span class="o">=</span><span class="n">data</span><span class="p">[:]</span></div>
+
+
+            <span class="c1"># DicoData[&quot;flags&quot;][ind]=flags[:]</span>
+
+
+<div class="viewcode-block" id="ClassPredict.GiveParamJonesList">
+<a class="viewcode-back" href="../../../api/killMS.Predict.html#killMS.Predict.PredictGaussPoints_NumExpr5.ClassPredict.GiveParamJonesList">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">GiveParamJonesList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                           <span class="n">DicoJonesMatricesIn</span><span class="p">,</span>
+                           <span class="n">A0</span><span class="p">,</span>
+                           <span class="n">A1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Returns tuple containing:</span>
+<span class="sd">        Map_VistToJones_Time, A0, A1, JonesMatrices, Map_VisToJones_Freq</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="s2">&quot;DicoApplyJones&quot;</span> <span class="ow">in</span> <span class="n">DicoJonesMatricesIn</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">DicoJonesMatrices</span><span class="o">=</span><span class="n">DicoJonesMatricesIn</span><span class="p">[</span><span class="s2">&quot;DicoApplyJones&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">DicoJonesMatrices</span><span class="o">=</span><span class="n">DicoJonesMatricesIn</span>
+        <span class="n">JonesMatrices</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex64</span><span class="p">(</span><span class="n">DicoJonesMatrices</span><span class="p">[</span><span class="s2">&quot;Jones&quot;</span><span class="p">])</span>
+        <span class="n">Map_VisToJones_Time</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">(</span><span class="n">DicoJonesMatrices</span><span class="p">[</span><span class="s2">&quot;Map_VisToJones_Time&quot;</span><span class="p">])</span>
+        <span class="c1"># print DicoJonesMatrices.keys()</span>
+        <span class="c1"># print DicoJonesMatricesIn.keys()</span>
+
+        <span class="n">Map_VisToJones_Freq</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">(</span><span class="n">DicoJonesMatrices</span><span class="p">[</span><span class="s2">&quot;Map_VisToJones_Freq&quot;</span><span class="p">])</span>
+        <span class="c1">#MapJones=np.int32(np.arange(A0.shape[0]))</span>
+        <span class="c1">#print DicoJonesMatrices[&quot;MapJones&quot;].shape</span>
+        <span class="c1">#stop</span>
+        <span class="n">A0</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">(</span><span class="n">A0</span><span class="p">)</span>
+        <span class="n">A1</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">(</span><span class="n">A1</span><span class="p">)</span>
+        <span class="c1">#print Map_VisToJones_Time</span>
+        <span class="c1">#print Map_VisToJones_Freq</span>
+        <span class="n">ParamJonesList</span><span class="o">=</span><span class="p">[</span><span class="n">Map_VisToJones_Time</span><span class="p">,</span><span class="n">A0</span><span class="p">,</span><span class="n">A1</span><span class="p">,</span><span class="n">JonesMatrices</span><span class="p">,</span><span class="n">Map_VisToJones_Freq</span><span class="p">]</span>
+        <span class="c1"># print sorted(list(set(ParamJonesList[0].tolist())))</span>
+        <span class="k">return</span> <span class="n">ParamJonesList</span></div>
+
+
+<div class="viewcode-block" id="ClassPredict.GiveCovariance">
+<a class="viewcode-back" href="../../../api/killMS.Predict.html#killMS.Predict.PredictGaussPoints_NumExpr5.ClassPredict.GiveCovariance">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">GiveCovariance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                       <span class="n">DicoData</span><span class="p">,</span>
+                       <span class="n">ApplyTimeJones</span><span class="p">,</span>
+                       <span class="n">SM</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Calculates covariance of residual visibilities&#39;&#39;&#39;</span>
+        <span class="n">D</span><span class="o">=</span><span class="n">ApplyTimeJones</span>
+        <span class="n">Beam</span><span class="o">=</span><span class="n">D</span><span class="p">[</span><span class="s2">&quot;Beam&quot;</span><span class="p">]</span>
+        <span class="n">BeamH</span><span class="o">=</span><span class="n">D</span><span class="p">[</span><span class="s2">&quot;BeamH&quot;</span><span class="p">]</span>
+        <span class="n">lt0</span><span class="p">,</span><span class="n">lt1</span><span class="o">=</span><span class="n">D</span><span class="p">[</span><span class="s2">&quot;t0&quot;</span><span class="p">],</span><span class="n">D</span><span class="p">[</span><span class="s2">&quot;t1&quot;</span><span class="p">]</span>
+        <span class="n">A0</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;A0&quot;</span><span class="p">]</span>
+        <span class="n">A1</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;A1&quot;</span><span class="p">]</span>
+        <span class="n">times</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;times&quot;</span><span class="p">]</span>
+        <span class="n">na</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;infos&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+
+        <span class="c1">#print &quot;predict...&quot;,times[0],times[-1]</span>
+        <span class="c1">#Predict=self.predictKernelPolCluster(DicoData,SM,ApplyTimeJones=ApplyTimeJones)</span>
+        <span class="c1">#print &quot;done...&quot;</span>
+
+
+        <span class="n">Resid</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;resid&quot;</span><span class="p">]</span><span class="c1">#-Predict</span>
+        <span class="n">flags</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;flags&quot;</span><span class="p">]</span>
+
+        <span class="n">ListDirection</span><span class="o">=</span><span class="n">SM</span><span class="o">.</span><span class="n">Dirs</span>
+
+        <span class="c1">#import pylab</span>
+        <span class="c1">#pylab.clf()</span>
+        <span class="c1">#import ppgplot</span>
+
+        <span class="n">MaxMat</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">Resid</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">CVis</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">Resid</span><span class="p">)</span>
+
+        
+
+
+        <span class="k">for</span> <span class="n">iCluster</span> <span class="ow">in</span> <span class="n">ListDirection</span><span class="p">:</span>
+            <span class="n">CVis</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">ParamJonesList</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GiveParamJonesList</span><span class="p">(</span><span class="n">ApplyTimeJones</span><span class="p">,</span><span class="n">A0</span><span class="p">,</span><span class="n">A1</span><span class="p">)</span>
+            <span class="n">ParamJonesList</span><span class="o">=</span><span class="n">ParamJonesList</span><span class="o">+</span><span class="p">[</span><span class="n">iCluster</span><span class="p">]</span>
+            <span class="n">predict</span><span class="o">.</span><span class="n">CorrVis</span><span class="p">(</span><span class="n">Resid</span><span class="p">,</span><span class="n">CVis</span><span class="p">,</span><span class="n">ParamJonesList</span><span class="p">)</span>
+
+            <span class="n">CVis</span><span class="p">[</span><span class="n">flags</span><span class="o">==</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="mf">0.</span>
+            <span class="n">aCVis</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">CVis</span><span class="p">)</span>
+            
+            <span class="c1">#print &quot;In direction %i: (std, std_abs, med_abs, max_abs)=(%f, %f, %f, %f)&quot;%(iCluster,np.std(CVis),np.std(aCVis),np.median(aCVis),np.max(aCVis))</span>
+            <span class="n">ind</span><span class="o">=</span><span class="p">(</span><span class="n">aCVis</span><span class="o">&gt;</span><span class="n">MaxMat</span><span class="p">)</span>
+            <span class="n">MaxMat</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span><span class="o">=</span><span class="n">aCVis</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+
+            <span class="k">del</span><span class="p">(</span><span class="n">aCVis</span><span class="p">)</span>
+
+
+        <span class="n">nrow</span><span class="p">,</span><span class="n">nch</span><span class="p">,</span><span class="n">_</span><span class="o">=</span><span class="n">Resid</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">W</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;W&quot;</span><span class="p">]</span><span class="c1">#np.ones((nrow,nch),np.float32)</span>
+        <span class="n">rms</span><span class="o">=</span><span class="n">findrms</span><span class="o">.</span><span class="n">findrms</span><span class="p">(</span><span class="n">MaxMat</span><span class="p">)</span>
+        <span class="n">diff</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">MaxMat</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">MaxMat</span><span class="p">))</span><span class="o">/</span><span class="n">rms</span>
+        <span class="n">cond</span><span class="o">=</span><span class="p">(</span><span class="n">diff</span><span class="o">&gt;</span><span class="mf">3.</span><span class="p">)</span>
+        <span class="n">ind</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">W</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span><span class="o">=</span><span class="mf">0.</span></div>
+
+
+
+<div class="viewcode-block" id="ClassPredict.GiveResidAntCovariance">
+<a class="viewcode-back" href="../../../api/killMS.Predict.html#killMS.Predict.PredictGaussPoints_NumExpr5.ClassPredict.GiveResidAntCovariance">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">GiveResidAntCovariance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                               <span class="n">DicoData</span><span class="p">,</span>
+                               <span class="n">ApplyTimeJones</span><span class="p">,</span>
+                               <span class="n">SM</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Finds antenna variance, with rms subtracted&#39;&#39;&#39;</span>
+        <span class="n">D</span><span class="o">=</span><span class="n">ApplyTimeJones</span>
+        <span class="n">Jones</span><span class="o">=</span><span class="n">D</span><span class="p">[</span><span class="s2">&quot;Jones&quot;</span><span class="p">]</span>
+        <span class="n">JonesH</span><span class="o">=</span><span class="n">D</span><span class="p">[</span><span class="s2">&quot;JonesH&quot;</span><span class="p">]</span>
+        <span class="n">lt0</span><span class="p">,</span><span class="n">lt1</span><span class="o">=</span><span class="n">D</span><span class="p">[</span><span class="s2">&quot;t0&quot;</span><span class="p">],</span><span class="n">D</span><span class="p">[</span><span class="s2">&quot;t1&quot;</span><span class="p">]</span>
+        <span class="n">ColOutDir</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span>
+        <span class="n">A0</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;A0&quot;</span><span class="p">]</span>
+        <span class="n">A1</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;A1&quot;</span><span class="p">]</span>
+        <span class="n">times</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;times&quot;</span><span class="p">]</span>
+        <span class="n">na</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;infos&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">Sigma</span><span class="o">=</span><span class="n">ApplyTimeJones</span><span class="p">[</span><span class="s2">&quot;Stats&quot;</span><span class="p">]</span>
+        <span class="n">W</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;W&quot;</span><span class="p">]</span><span class="c1">#np.ones((nrow,nch),np.float32)</span>
+        <span class="n">nrow</span><span class="p">,</span><span class="n">nch</span><span class="o">=</span><span class="n">W</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="c1"># print Jones.shape</span>
+        <span class="n">rmsAllAnts</span><span class="o">=</span><span class="n">Sigma</span><span class="p">[:,:,:,</span><span class="mi">0</span><span class="p">]</span>
+
+
+        <span class="n">rmsAllAnts</span><span class="o">=</span><span class="n">rmsAllAnts</span><span class="p">[</span><span class="n">rmsAllAnts</span><span class="o">&gt;</span><span class="mf">0.</span><span class="p">]</span>
+        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rmsAllAnts</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">W</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">rms</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">rmsAllAnts</span><span class="p">)</span>
+        <span class="c1">#print rmsAllAnts,rms</span>
+        <span class="n">S</span><span class="o">=</span><span class="n">Sigma</span><span class="p">[:,:,:,</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">S</span><span class="p">[</span><span class="n">S</span><span class="o">==</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="mf">1e6</span>
+        <span class="n">S</span><span class="p">[</span><span class="n">S</span><span class="o">==-</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="mf">1e6</span>
+
+
+        <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">lt0</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+            
+            <span class="n">t0</span><span class="p">,</span><span class="n">t1</span><span class="o">=</span><span class="n">lt0</span><span class="p">[</span><span class="n">it</span><span class="p">],</span><span class="n">lt1</span><span class="p">[</span><span class="n">it</span><span class="p">]</span>
+            <span class="n">ind</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">times</span><span class="o">&gt;=</span><span class="n">t0</span><span class="p">)</span><span class="o">&amp;</span><span class="p">(</span><span class="n">times</span><span class="o">&lt;</span><span class="n">t1</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">ind</span><span class="o">.</span><span class="n">size</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">ColOutDir</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+            <span class="c1"># flags=DicoData[&quot;flags&quot;][ind]</span>
+
+            <span class="c1"># print ind,t0,t1</span>
+
+            <span class="n">A0sel</span><span class="o">=</span><span class="n">A0</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+            <span class="n">A1sel</span><span class="o">=</span><span class="n">A1</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+            
+            <span class="n">ThisStats</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">Sigma</span><span class="p">[</span><span class="n">it</span><span class="p">][</span><span class="mi">0</span><span class="p">,:,</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="o">-</span><span class="n">rms</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+            <span class="c1"># try:</span>
+            <span class="c1">#     ThisStats=np.sqrt(np.abs(Sigma[it][:,0]**2-rms**2))</span>
+            <span class="c1"># except:</span>
+            <span class="c1">#     print &quot;S&quot;,Sigma[it][:,0]</span>
+            <span class="c1">#     print &quot;rms&quot;,rms</span>
+            <span class="c1">#     print &quot;Resid&quot;,(Sigma[it][:,0]**2-rms**2)</span>
+            <span class="c1">#     #ApplyTimeJones[&quot;Stats&quot;]</span>
+
+            <span class="c1"># print &quot;t:&quot;,it</span>
+            <span class="c1"># print &quot;0&quot;,np.min(Sigma[it][:,0]**2-rms**2)</span>
+            <span class="c1"># print &quot;1&quot;,np.min(Sigma[it][:,0]**2)</span>
+            <span class="c1"># print &quot;2&quot;,(rms**2)</span>
+
+            <span class="c1"># nt,nd,na,1,2,2</span>
+            <span class="n">Jabs</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">Jones</span><span class="p">[</span><span class="n">it</span><span class="p">,:,:,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">J</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">Jabs</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="c1"># print &quot;=================&quot;</span>
+            <span class="c1"># print A0sel</span>
+            <span class="c1"># print Jones.shape,Jabs.shape,J.shape</span>
+            <span class="n">J0</span><span class="o">=</span><span class="n">J</span><span class="p">[</span><span class="n">A0sel</span><span class="p">]</span>
+            <span class="n">J1</span><span class="o">=</span><span class="n">J</span><span class="p">[</span><span class="n">A1sel</span><span class="p">]</span>
+            
+            <span class="n">sig0</span><span class="o">=</span><span class="n">ThisStats</span><span class="p">[</span><span class="n">A0sel</span><span class="p">]</span>
+            <span class="n">sig1</span><span class="o">=</span><span class="n">ThisStats</span><span class="p">[</span><span class="n">A1sel</span><span class="p">]</span>
+
+            <span class="n">fact</span><span class="o">=</span><span class="mf">1.</span>
+            <span class="n">w</span><span class="o">=</span><span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">rms</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="p">(</span><span class="n">sig0</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">fact</span><span class="p">)</span><span class="o">+</span><span class="p">(</span><span class="n">sig1</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">fact</span><span class="p">))</span><span class="c1">#+sig0*sig1)</span>
+            <span class="k">for</span> <span class="n">ich</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nch</span><span class="p">):</span>
+                <span class="n">W</span><span class="p">[</span><span class="n">ind</span><span class="p">,</span><span class="n">ich</span><span class="p">]</span><span class="o">=</span><span class="n">w</span><span class="p">[:]</span></div>
+
+
+
+
+
+    <span class="c1"># def GiveGM(self,iFacet,SM):</span>
+    <span class="c1">#     GridMachine=ClassDDEGridMachine.ClassDDEGridMachine(SM.GD,</span>
+    <span class="c1">#                                                         SM.DicoImager[iFacet][&quot;DicoConfigGM&quot;][&quot;ChanFreq&quot;],</span>
+    <span class="c1">#                                                         SM.DicoImager[iFacet][&quot;DicoConfigGM&quot;][&quot;Npix&quot;],</span>
+    <span class="c1">#                                                         lmShift=SM.DicoImager[iFacet][&quot;lmShift&quot;],</span>
+    <span class="c1">#                                                         IdSharedMem=self.IdSharedMem,</span>
+    <span class="c1">#                                                         IDFacet=SM.DicoImager[iFacet][&quot;IDFacet&quot;],</span>
+    <span class="c1">#                                                         SpheNorm=False)</span>
+
+<div class="viewcode-block" id="ClassPredict.GiveGM">
+<a class="viewcode-back" href="../../../api/killMS.Predict.html#killMS.Predict.PredictGaussPoints_NumExpr5.ClassPredict.GiveGM">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">GiveGM</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+               <span class="n">iFacet</span><span class="p">,</span>
+               <span class="n">SM</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ClassDDEGridMachine</span><span class="o">.</span><span class="n">ClassDDEGridMachine</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Factory: Initializes a gridding machine for this facet</span>
+<span class="sd">        Args:</span>
+<span class="sd">            iFacet: index of facet</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            grid machine instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># GridMachine=ClassDDEGridMachine.ClassDDEGridMachine(SM.GD,#RaDec=self.DicoImager[iFacet][&quot;RaDec&quot;],</span>
+        <span class="c1">#                                                     SM.DicoImager[iFacet][&quot;DicoConfigGM&quot;][&quot;ChanFreq&quot;],</span>
+        <span class="c1">#                                                     SM.DicoImager[iFacet][&quot;DicoConfigGM&quot;][&quot;NPix&quot;],</span>
+        <span class="c1">#                                                     lmShift=SM.DicoImager[iFacet][&quot;lmShift&quot;],</span>
+        <span class="c1">#                                                     IdSharedMem=IdSharedMem,</span>
+        <span class="c1">#                                                     IdSharedMemData=IdSharedMemData,</span>
+        <span class="c1">#                                                     FacetDataCache=FacetDataCache,</span>
+        <span class="c1">#                                                     ChunkDataCache=ChunkDataCache,</span>
+        <span class="c1">#                                                     IDFacet=SM.DicoImager[iFacet][&quot;IDFacet&quot;],</span>
+        <span class="c1">#                                                     SpheNorm=False)</span>
+        <span class="c1">#                                                     #,</span>
+        <span class="c1">#                                                     #NFreqBands=self.VS.NFreqBands,</span>
+        <span class="c1">#                                                     #DataCorrelationFormat=self.VS.StokesConverter.AvailableCorrelationProductsIds(),</span>
+        <span class="c1">#                                                     #ExpectedOutputStokes=self.VS.StokesConverter.RequiredStokesProductsIds(),</span>
+        <span class="c1">#                                                     #ListSemaphores=self.ListSemaphores)        </span>
+
+        <span class="n">SpheNorm</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">FacetInfo</span> <span class="o">=</span> <span class="n">SM</span><span class="o">.</span><span class="n">DicoImager</span><span class="p">[</span><span class="n">iFacet</span><span class="p">]</span>
+        <span class="n">IDFacet</span><span class="o">=</span><span class="n">FacetInfo</span><span class="p">[</span><span class="s2">&quot;IDFacet&quot;</span><span class="p">]</span>
+        <span class="n">cf_dict</span><span class="o">=</span><span class="n">shared_dict</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">SM</span><span class="o">.</span><span class="n">Path</span><span class="p">[</span><span class="s2">&quot;cf_dict_path&quot;</span><span class="p">])[</span><span class="n">IDFacet</span><span class="p">]</span>
+        <span class="c1">#print iFacet,IDFacet</span>
+        <span class="n">GridMachine</span><span class="o">=</span> <span class="n">ClassDDEGridMachine</span><span class="o">.</span><span class="n">ClassDDEGridMachine</span><span class="p">(</span><span class="n">SM</span><span class="o">.</span><span class="n">GD</span><span class="p">,</span>
+                                                             <span class="n">FacetInfo</span><span class="p">[</span><span class="s2">&quot;DicoConfigGM&quot;</span><span class="p">][</span><span class="s2">&quot;ChanFreq&quot;</span><span class="p">],</span>
+                                                             <span class="n">FacetInfo</span><span class="p">[</span><span class="s2">&quot;DicoConfigGM&quot;</span><span class="p">][</span><span class="s2">&quot;NPix&quot;</span><span class="p">],</span>
+                                                             <span class="n">lmShift</span><span class="o">=</span><span class="n">FacetInfo</span><span class="p">[</span><span class="s2">&quot;lmShift&quot;</span><span class="p">],</span>
+                                                             <span class="n">IDFacet</span><span class="o">=</span><span class="n">IDFacet</span><span class="p">,</span>
+                                                             <span class="n">SpheNorm</span><span class="o">=</span><span class="n">SpheNorm</span><span class="p">,</span> 
+                                                             <span class="n">NFreqBands</span><span class="o">=</span><span class="n">SM</span><span class="o">.</span><span class="n">NFreqBands</span><span class="p">,</span>
+                                                             <span class="n">DataCorrelationFormat</span><span class="o">=</span><span class="n">SM</span><span class="o">.</span><span class="n">AvailableCorrelationProductsIds</span><span class="p">,</span>
+                                                             <span class="n">ExpectedOutputStokes</span><span class="o">=</span><span class="n">SM</span><span class="o">.</span><span class="n">RequiredStokesProductsIds</span><span class="p">,</span>
+                                                             <span class="n">cf_dict</span><span class="o">=</span><span class="n">cf_dict</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">GridMachine</span></div>
+
+
+<div class="viewcode-block" id="ClassPredict.InitGM">
+<a class="viewcode-back" href="../../../api/killMS.Predict.html#killMS.Predict.PredictGaussPoints_NumExpr5.ClassPredict.InitGM">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">InitGM</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+               <span class="n">SM</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Initialiser for DicoGridMachine, DicoGM&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DicoGM</span><span class="o">=</span><span class="p">{}</span>
+        <span class="n">LFacets</span><span class="o">=</span><span class="n">SM</span><span class="o">.</span><span class="n">DicoImager</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">iFacet</span> <span class="ow">in</span> <span class="n">LFacets</span><span class="p">:</span>
+            <span class="c1">#print &quot;Initialising Facet %i&quot;%iFacet</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">DicoGM</span><span class="p">[</span><span class="n">iFacet</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GiveGM</span><span class="p">(</span><span class="n">iFacet</span><span class="p">,</span><span class="n">SM</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ClassPredict.predictKernelPolCluster">
+<a class="viewcode-back" href="../../../api/killMS.Predict.html#killMS.Predict.PredictGaussPoints_NumExpr5.ClassPredict.predictKernelPolCluster">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">predictKernelPolCluster</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                <span class="n">DicoData</span><span class="p">,</span>
+                                <span class="n">SM</span><span class="p">,</span>
+                                <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        </span>
+<span class="sd">        depending on SM.Type, kwargs are for:</span>
+<span class="sd">        predictKernelPolClusterCatalog:</span>
+<span class="sd">        DicoData,</span>
+<span class="sd">        SM,</span>
+<span class="sd">        iDirection=None,</span>
+<span class="sd">        ApplyJones=None,</span>
+<span class="sd">        ApplyTimeJones=None,</span>
+<span class="sd">        Noise=None</span>
+<span class="sd">        predictKernelPolClusterImage:</span>
+<span class="sd">        DicoData,</span>
+<span class="sd">        SM,</span>
+<span class="sd">        iDirection=None,</span>
+<span class="sd">        ApplyJones=None,</span>
+<span class="sd">        ApplyTimeJones=None,</span>
+<span class="sd">        Noise=None,</span>
+<span class="sd">        ForceNoDecorr=False</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">SM</span><span class="o">.</span><span class="n">Type</span><span class="o">==</span><span class="s2">&quot;Catalog&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">predictKernelPolClusterCatalog</span><span class="p">(</span><span class="n">DicoData</span><span class="p">,</span><span class="n">SM</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">SM</span><span class="o">.</span><span class="n">Type</span><span class="o">==</span><span class="s2">&quot;Image&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">predictKernelPolClusterImage</span><span class="p">(</span><span class="n">DicoData</span><span class="p">,</span><span class="n">SM</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+
+
+<div class="viewcode-block" id="ClassPredict.predictKernelPolClusterCatalog">
+<a class="viewcode-back" href="../../../api/killMS.Predict.html#killMS.Predict.PredictGaussPoints_NumExpr5.ClassPredict.predictKernelPolClusterCatalog">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">predictKernelPolClusterCatalog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                       <span class="n">DicoData</span><span class="p">,</span>
+                                       <span class="n">SM</span><span class="p">,</span>
+                                       <span class="n">iDirection</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                       <span class="n">ApplyJones</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                       <span class="n">ApplyTimeJones</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                       <span class="n">Noise</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DicoData</span><span class="o">=</span><span class="n">DicoData</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SourceCat</span><span class="o">=</span><span class="n">SM</span><span class="o">.</span><span class="n">SourceCat</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="o">=</span><span class="n">SM</span>
+
+        <span class="n">freq</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;freqs_full&quot;</span><span class="p">]</span>
+        <span class="n">times</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;times&quot;</span><span class="p">]</span>
+        <span class="n">nf</span><span class="o">=</span><span class="n">freq</span><span class="o">.</span><span class="n">size</span>
+        <span class="n">na</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;infos&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        
+        <span class="n">nrows</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;A0&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
+        <span class="n">DataOut</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nrows</span><span class="p">,</span><span class="n">nf</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">CType</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nrows</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="n">DataOut</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">freqs</span><span class="o">=</span><span class="n">freq</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wave</span><span class="o">=</span><span class="mf">299792458.</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">freqs</span>
+        
+        <span class="k">if</span> <span class="n">iDirection</span><span class="o">!=</span><span class="kc">None</span><span class="p">:</span>
+            <span class="n">ListDirection</span><span class="o">=</span><span class="p">[</span><span class="n">iDirection</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ListDirection</span><span class="o">=</span><span class="n">SM</span><span class="o">.</span><span class="n">Dirs</span><span class="c1">#range(SM.NDir)</span>
+        
+        <span class="n">A0</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;A0&quot;</span><span class="p">]</span>
+        <span class="n">A1</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;A1&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">ApplyJones</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1">#print &quot;!!!!!&quot;,ApplyJones.shape</span>
+            <span class="c1">#print &quot;!!!!!&quot;,ApplyJones.shape</span>
+            <span class="c1">#print &quot;!!!!!&quot;,ApplyJones.shape</span>
+            <span class="n">na</span><span class="p">,</span><span class="n">NDir</span><span class="p">,</span><span class="n">_</span><span class="o">=</span><span class="n">ApplyJones</span><span class="o">.</span><span class="n">shape</span>
+            <span class="n">Jones</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">ApplyJones</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">Jones</span><span class="o">=</span><span class="n">Jones</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">NDir</span><span class="p">,</span><span class="n">na</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+            <span class="n">JonesH</span><span class="o">=</span><span class="n">ModLinAlg</span><span class="o">.</span><span class="n">BatchH</span><span class="p">(</span><span class="n">Jones</span><span class="p">)</span>
+
+        <span class="n">TSmear</span><span class="o">=</span><span class="mf">0.</span>
+        <span class="n">FSmear</span><span class="o">=</span><span class="mf">0.</span>
+        <span class="n">DT</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;infos&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">UVW_dt</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;uvw&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">DoSmearing</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;T&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">DoSmearing</span><span class="p">:</span>
+                <span class="n">TSmear</span><span class="o">=</span><span class="mf">1.</span>
+                <span class="n">UVW_dt</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;UVW_dt&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;F&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">DoSmearing</span><span class="p">:</span>
+                <span class="n">FSmear</span><span class="o">=</span><span class="mf">1.</span>
+
+
+
+
+        <span class="c1"># self.SourceCat.m[:]=0</span>
+        <span class="c1"># self.SourceCat.l[:]=0.1</span>
+        <span class="c1"># self.SourceCat.I[:]=10</span>
+        <span class="c1"># self.SourceCat.alpha[:]=0</span>
+
+        <span class="c1"># DataOut=DataOut[1:2]</span>
+        <span class="c1"># self.DicoData[&quot;uvw&quot;]=self.DicoData[&quot;uvw&quot;][1:2]</span>
+        <span class="c1"># self.DicoData[&quot;A0&quot;]=self.DicoData[&quot;A0&quot;][1:2]</span>
+        <span class="c1"># self.DicoData[&quot;A1&quot;]=self.DicoData[&quot;A1&quot;][1:2]</span>
+        <span class="c1"># self.DicoData[&quot;IndexTimesThisChunk&quot;]=self.DicoData[&quot;IndexTimesThisChunk&quot;][1:2]</span>
+        <span class="c1"># self.SourceCat=self.SourceCat[0:1]</span>
+
+        
+        <span class="n">ColOutDir</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">DataOut</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">complex64</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">iCluster</span> <span class="ow">in</span> <span class="n">ListDirection</span><span class="p">:</span>
+            <span class="n">ColOutDir</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+            <span class="n">indSources</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">SourceCat</span><span class="o">.</span><span class="n">Cluster</span><span class="o">==</span><span class="n">iCluster</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">T</span><span class="o">=</span><span class="n">ClassTimeIt</span><span class="p">(</span><span class="s2">&quot;predict&quot;</span><span class="p">)</span>
+            <span class="n">T</span><span class="o">.</span><span class="n">disable</span><span class="p">()</span>
+            <span class="c1">### new</span>
+            <span class="n">SourceCat</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">SourceCat</span><span class="p">[</span><span class="n">indSources</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="c1">#l=np.ones((1,),dtype=np.float64)#,float64(SourceCat.l).copy()</span>
+            <span class="n">l</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">require</span><span class="p">(</span><span class="n">SourceCat</span><span class="o">.</span><span class="n">l</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">requirements</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span><span class="s2">&quot;C&quot;</span><span class="p">])</span>
+            <span class="n">m</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">require</span><span class="p">(</span><span class="n">SourceCat</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">requirements</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span><span class="s2">&quot;C&quot;</span><span class="p">])</span>
+            
+            <span class="c1">#m=SourceCat.m#np.float64(SourceCat.m).copy()</span>
+            <span class="n">I</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">SourceCat</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+            <span class="n">Gmaj</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">SourceCat</span><span class="o">.</span><span class="n">Gmaj</span><span class="p">)</span>
+            <span class="n">Gmin</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">SourceCat</span><span class="o">.</span><span class="n">Gmin</span><span class="p">)</span>
+            <span class="n">GPA</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">SourceCat</span><span class="o">.</span><span class="n">Gangle</span><span class="p">)</span>
+            <span class="n">alpha</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">SourceCat</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span>
+            <span class="n">WaveL</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">(</span><span class="mf">299792458.</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">freqs</span><span class="p">)</span>
+            <span class="n">WaveL</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">require</span><span class="p">(</span><span class="n">WaveL</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">requirements</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span><span class="s2">&quot;C&quot;</span><span class="p">])</span>
+
+            <span class="n">flux</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">SourceCat</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+            <span class="n">alpha</span><span class="o">=</span><span class="n">SourceCat</span><span class="o">.</span><span class="n">alpha</span>
+            <span class="n">dnu</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;dfreqs_full&quot;</span><span class="p">])</span>
+            <span class="n">f0</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">freqs</span><span class="o">/</span><span class="n">SourceCat</span><span class="o">.</span><span class="n">RefFreq</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">fluxFreq</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">flux</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">flux</span><span class="o">.</span><span class="n">size</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span><span class="o">*</span><span class="p">(</span><span class="n">f0</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="n">f0</span><span class="o">.</span><span class="n">size</span><span class="p">)))</span><span class="o">**</span><span class="p">(</span><span class="n">alpha</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">alpha</span><span class="o">.</span><span class="n">size</span><span class="p">,</span><span class="mi">1</span><span class="p">))))</span>
+
+            <span class="n">LSM</span><span class="o">=</span><span class="p">[</span><span class="n">l</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">fluxFreq</span><span class="p">,</span><span class="n">Gmin</span><span class="p">,</span><span class="n">Gmaj</span><span class="p">,</span><span class="n">GPA</span><span class="p">]</span>
+            <span class="n">LFreqs</span><span class="o">=</span><span class="p">[</span><span class="n">WaveL</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">freqs</span><span class="p">),</span><span class="n">dnu</span><span class="p">]</span>
+            <span class="n">LUVWSpeed</span><span class="o">=</span><span class="p">[</span><span class="n">UVW_dt</span><span class="p">,</span><span class="n">DT</span><span class="p">]</span>
+
+            <span class="n">LSmearMode</span><span class="o">=</span><span class="p">[</span><span class="n">FSmear</span><span class="p">,</span><span class="n">TSmear</span><span class="p">]</span>
+            <span class="n">T</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="s2">&quot;init&quot;</span><span class="p">)</span>
+
+            <span class="n">AllowEqualiseChan</span><span class="o">=</span><span class="n">IsChanEquidistant</span><span class="p">(</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;freqs_full&quot;</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="n">ApplyTimeJones</span><span class="o">!=</span><span class="kc">None</span><span class="p">:</span>
+
+                <span class="c1">#predict.predictJones(ColOutDir,(DicoData[&quot;uvw&quot;]),LFreqs,LSM,LUVWSpeed,LSmearMode,ParamJonesList)</span>
+
+                <span class="c1">#ColOutDir.fill(0)</span>
+                <span class="c1">#predict.predictJones(ColOutDir,(DicoData[&quot;uvw&quot;]),LFreqs,LSM,LUVWSpeed,LSmearMode,ParamJonesList,0)</span>
+                <span class="c1">#d0=ColOutDir.copy()</span>
+                <span class="c1">#ColOutDir.fill(0)</span>
+
+                <span class="c1"># predict.predictJones(ColOutDir,(DicoData[&quot;uvw&quot;]),LFreqs,LSM,LUVWSpeed,LSmearMode,ParamJonesList,AllowEqualiseChan)</span>
+                <span class="c1"># ColOutDir0=ColOutDir.copy()</span>
+                <span class="c1"># ColOutDir.fill(0)</span>
+
+                <span class="c1">#predict.predictJones2(ColOutDir,(DicoData[&quot;uvw&quot;]),LFreqs,LSM,LUVWSpeed,LSmearMode,ParamJonesList,AllowEqualiseChan)</span>
+                <span class="c1">#print LSmearMode</span>
+                <span class="n">predict</span><span class="o">.</span><span class="n">predictJones2_Gauss</span><span class="p">(</span><span class="n">ColOutDir</span><span class="p">,(</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;uvw&quot;</span><span class="p">]),</span><span class="n">LFreqs</span><span class="p">,</span><span class="n">LSM</span><span class="p">,</span><span class="n">LUVWSpeed</span><span class="p">,</span><span class="n">LSmearMode</span><span class="p">,</span><span class="n">AllowEqualiseChan</span><span class="p">,</span>
+                                            <span class="bp">self</span><span class="o">.</span><span class="n">LExp</span><span class="p">,</span>
+                                            <span class="bp">self</span><span class="o">.</span><span class="n">LSinc</span><span class="p">)</span>
+                
+                <span class="n">T</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="s2">&quot;predict&quot;</span><span class="p">)</span>
+
+                <span class="n">ParamJonesList</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GiveParamJonesList</span><span class="p">(</span><span class="n">ApplyTimeJones</span><span class="p">,</span><span class="n">A0</span><span class="p">,</span><span class="n">A1</span><span class="p">)</span>
+                <span class="n">ParamJonesList</span><span class="o">=</span><span class="n">ParamJonesList</span><span class="o">+</span><span class="p">[</span><span class="n">iCluster</span><span class="p">]</span>
+
+                
+                <span class="n">predict</span><span class="o">.</span><span class="n">ApplyJones</span><span class="p">(</span><span class="n">ColOutDir</span><span class="p">,</span><span class="n">ParamJonesList</span><span class="p">)</span>
+                <span class="n">T</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="s2">&quot;apply&quot;</span><span class="p">)</span>
+
+
+                <span class="c1"># print ColOutDir</span>
+
+                <span class="c1">#d1=ColOutDir.copy()</span>
+                <span class="c1">#ind=np.where(d0!=0)</span>
+                <span class="c1">#print np.max((d0-d1)[ind]/(d0[ind]))</span>
+                <span class="c1">#stop</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1">#predict.predict(ColOutDir,(DicoData[&quot;uvw&quot;]),LFreqs,LSM,LUVWSpeed,LSmearMode)</span>
+                <span class="c1">#AllowEqualiseChan=0</span>
+                <span class="c1">#predict.predict(ColOutDir,(DicoData[&quot;uvw&quot;]),LFreqs,LSM,LUVWSpeed,LSmearMode,AllowEqualiseChan)</span>
+                <span class="c1">#d0=ColOutDir.copy()</span>
+                <span class="c1">#ColOutDir.fill(0)</span>
+
+                
+                <span class="n">predict</span><span class="o">.</span><span class="n">predictJones2_Gauss</span><span class="p">(</span><span class="n">ColOutDir</span><span class="p">,(</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;uvw&quot;</span><span class="p">]),</span><span class="n">LFreqs</span><span class="p">,</span><span class="n">LSM</span><span class="p">,</span><span class="n">LUVWSpeed</span><span class="p">,</span><span class="n">LSmearMode</span><span class="p">,</span><span class="n">AllowEqualiseChan</span><span class="p">,</span>
+                                            <span class="bp">self</span><span class="o">.</span><span class="n">LExp</span><span class="p">,</span>
+                                            <span class="bp">self</span><span class="o">.</span><span class="n">LSinc</span><span class="p">)</span>
+                <span class="c1">#print ColOutDir</span>
+                <span class="c1">#predict.predict(ColOutDir,(DicoData[&quot;uvw&quot;]),LFreqs,LSM,LUVWSpeed,LSmearMode,AllowEqualiseChan)</span>
+                <span class="n">T</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="s2">&quot;predict&quot;</span><span class="p">)</span>
+                <span class="c1"># d0=ColOutDir.copy()</span>
+                <span class="c1"># ColOutDir.fill(0)</span>
+
+                <span class="c1"># predict_np19.predict(ColOutDir,(DicoData[&quot;uvw&quot;]),LFreqs,LSM,LUVWSpeed,LSmearMode,AllowEqualiseChan)</span>
+                <span class="c1"># print ColOutDir,d0</span>
+                <span class="c1"># d1=ColOutDir.copy()</span>
+                <span class="c1"># ind=np.where(d0!=0)</span>
+                <span class="c1"># print np.max((d0-d1)[ind]/(d0[ind]))</span>
+                <span class="c1"># stop</span>
+
+
+            <span class="k">del</span><span class="p">(</span><span class="n">l</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">I</span><span class="p">,</span><span class="n">SourceCat</span><span class="p">,</span><span class="n">alpha</span><span class="p">,</span><span class="n">WaveL</span><span class="p">,</span><span class="n">flux</span><span class="p">,</span><span class="n">dnu</span><span class="p">,</span><span class="n">f0</span><span class="p">,</span><span class="n">fluxFreq</span><span class="p">,</span><span class="n">LSM</span><span class="p">,</span><span class="n">LFreqs</span><span class="p">)</span>
+            <span class="n">T</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="s2">&quot;del&quot;</span><span class="p">)</span>
+
+
+                <span class="c1"># d1=ColOutDir</span>
+                <span class="c1"># ind=np.where(d0!=0)</span>
+                <span class="c1"># print np.max((d0-d1)[ind]/(d0[ind]))</span>
+                <span class="c1"># stop</span>
+                
+
+
+
+            <span class="k">if</span> <span class="n">Noise</span><span class="o">!=</span><span class="kc">None</span><span class="p">:</span>
+                <span class="n">ColOutDir</span><span class="o">+=</span><span class="n">Noise</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="o">*</span><span class="n">ColOutDir</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="o">*</span><span class="n">ColOutDir</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+                <span class="n">stop</span>
+            <span class="n">DataOut</span><span class="o">+=</span><span class="n">ColOutDir</span>
+            <span class="n">T</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="s2">&quot;add&quot;</span><span class="p">)</span>
+        <span class="c1">#del(LFreqs,LSM,LUVWSpeed,LSmearMode)</span>
+        <span class="c1">#del(ColOutDir)</span>
+
+        <span class="k">return</span> <span class="n">DataOut</span></div>
+
+
+
+    <span class="c1">######################################################</span>
+    <span class="c1">######################################################</span>
+    <span class="c1">######################################################</span>
+
+
+<div class="viewcode-block" id="ClassPredict.predictKernelPolClusterImage">
+<a class="viewcode-back" href="../../../api/killMS.Predict.html#killMS.Predict.PredictGaussPoints_NumExpr5.ClassPredict.predictKernelPolClusterImage">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">predictKernelPolClusterImage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                     <span class="n">DicoData</span><span class="p">,</span>
+                                     <span class="n">SM</span><span class="p">,</span>
+                                     <span class="n">iDirection</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                     <span class="n">ApplyJones</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                     <span class="n">ApplyTimeJones</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                     <span class="n">Noise</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                     <span class="n">ForceNoDecorr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+
+        <span class="n">T</span><span class="o">=</span><span class="n">ClassTimeIt</span><span class="p">(</span><span class="s2">&quot;predictKernelPolClusterImage&quot;</span><span class="p">)</span>
+        <span class="n">T</span><span class="o">.</span><span class="n">disable</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DicoData</span><span class="o">=</span><span class="n">DicoData</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="o">=</span><span class="n">SM</span>
+        
+        
+        <span class="n">freq</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;freqs_full&quot;</span><span class="p">]</span>
+        <span class="n">times</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;times&quot;</span><span class="p">]</span>
+        <span class="n">nf</span><span class="o">=</span><span class="n">freq</span><span class="o">.</span><span class="n">size</span>
+        <span class="n">na</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;infos&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        
+        <span class="n">nrows</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;A0&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
+        <span class="n">T</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="s2">&quot;0&quot;</span><span class="p">)</span>
+        <span class="n">DataOut</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nrows</span><span class="p">,</span><span class="n">nf</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">CType</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nrows</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="n">DataOut</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">freqs</span><span class="o">=</span><span class="n">freq</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wave</span><span class="o">=</span><span class="mf">299792458.</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">freqs</span>
+        
+        <span class="k">if</span> <span class="n">iDirection</span><span class="o">!=</span><span class="kc">None</span><span class="p">:</span>
+            <span class="n">ListDirection</span><span class="o">=</span><span class="p">[</span><span class="n">iDirection</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ListDirection</span><span class="o">=</span><span class="n">SM</span><span class="o">.</span><span class="n">Dirs</span><span class="c1">#range(SM.NDir)</span>
+        
+        <span class="n">A0</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;A0&quot;</span><span class="p">]</span>
+        <span class="n">A1</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;A1&quot;</span><span class="p">]</span>
+        <span class="c1"># if ApplyJones!=None:</span>
+        <span class="c1">#     na,NDir,_=ApplyJones.shape</span>
+        <span class="c1">#     Jones=np.swapaxes(ApplyJones,0,1)</span>
+        <span class="c1">#     Jones=Jones.reshape((NDir,na,4))</span>
+        <span class="c1">#     JonesH=ModLinAlg.BatchH(Jones)</span>
+
+        <span class="n">TSmear</span><span class="o">=</span><span class="mf">0.</span>
+        <span class="n">FSmear</span><span class="o">=</span><span class="mf">0.</span>
+
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">DoSmearing</span><span class="o">!=</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;T&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">DoSmearing</span><span class="p">:</span>
+                <span class="n">TSmear</span><span class="o">=</span><span class="mf">1.</span>
+            <span class="k">if</span> <span class="s2">&quot;F&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">DoSmearing</span><span class="p">:</span>
+                <span class="n">FSmear</span><span class="o">=</span><span class="mf">1.</span>
+
+        <span class="c1"># self.SourceCat.m[:]=0</span>
+        <span class="c1"># self.SourceCat.l[:]=0.1</span>
+        <span class="c1"># self.SourceCat.I[:]=10</span>
+        <span class="c1"># self.SourceCat.alpha[:]=0</span>
+
+        <span class="c1"># DataOut=DataOut[1:2]</span>
+        <span class="c1"># self.DicoData[&quot;uvw&quot;]=self.DicoData[&quot;uvw&quot;][1:2]</span>
+        <span class="c1"># self.DicoData[&quot;A0&quot;]=self.DicoData[&quot;A0&quot;][1:2]</span>
+        <span class="c1"># self.DicoData[&quot;A1&quot;]=self.DicoData[&quot;A1&quot;][1:2]</span>
+        <span class="c1"># self.DicoData[&quot;IndexTimesThisChunk&quot;]=self.DicoData[&quot;IndexTimesThisChunk&quot;][1:2]</span>
+        <span class="c1"># self.SourceCat=self.SourceCat[0:1]</span>
+
+        <span class="n">DT</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;infos&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1">#UVW_dt=DicoData[&quot;UVW_dt&quot;]</span>
+        <span class="n">Dnu</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;dfreqs_full&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">ColOutDir</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">DataOut</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">complex64</span><span class="p">)</span>
+        <span class="n">DATA</span><span class="o">=</span><span class="n">DicoData</span>
+
+        <span class="n">T</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="s2">&quot;1&quot;</span><span class="p">)</span>
+        <span class="n">ListFacets</span><span class="o">=</span><span class="n">SM</span><span class="o">.</span><span class="n">DicoJonesDirToFacet</span><span class="p">[</span><span class="n">iDirection</span><span class="p">][</span><span class="s2">&quot;FacetsIDs&quot;</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">iFacet</span> <span class="ow">in</span> <span class="n">ListFacets</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">SM</span><span class="o">.</span><span class="n">DicoImager</span><span class="p">[</span><span class="n">iFacet</span><span class="p">][</span><span class="s2">&quot;SumFlux&quot;</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="n">GridMachine</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">DicoGM</span><span class="p">[</span><span class="n">iFacet</span><span class="p">]</span><span class="c1">#self.GiveGM(iFacet,SM)</span>
+            <span class="n">T</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="s2">&quot;2: GM&quot;</span><span class="p">)</span>
+            <span class="n">uvwThis</span><span class="o">=</span><span class="n">DATA</span><span class="p">[</span><span class="s2">&quot;uvw&quot;</span><span class="p">]</span>
+            <span class="n">flagsThis</span><span class="o">=</span><span class="n">DATA</span><span class="p">[</span><span class="s2">&quot;flags_image&quot;</span><span class="p">]</span>
+            <span class="n">times</span><span class="o">=</span><span class="n">DATA</span><span class="p">[</span><span class="s2">&quot;times&quot;</span><span class="p">]</span>
+            <span class="n">A0</span><span class="o">=</span><span class="n">DATA</span><span class="p">[</span><span class="s2">&quot;A0&quot;</span><span class="p">]</span>
+            <span class="n">A1</span><span class="o">=</span><span class="n">DATA</span><span class="p">[</span><span class="s2">&quot;A1&quot;</span><span class="p">]</span>
+            <span class="n">A0A1</span><span class="o">=</span><span class="n">A0</span><span class="p">,</span><span class="n">A1</span>
+            <span class="n">freqs</span><span class="o">=</span><span class="n">DATA</span><span class="p">[</span><span class="s2">&quot;freqs_full&quot;</span><span class="p">]</span>
+
+
+            <span class="n">DicoJonesMatrices</span><span class="o">=</span><span class="kc">None</span>
+            <span class="c1">#DicoJonesMatrices=ApplyTimeJones</span>
+
+
+
+            <span class="c1"># ModelSharedMemName=&quot;%sModelImage.Facet_%3.3i&quot;%(self.IdSharedMem,iFacet)</span>
+            <span class="c1"># print &quot;Facet %i: take model image %s&quot;%(iFacet,ModelSharedMemName)</span>
+            <span class="c1"># ModelIm = NpShared.GiveArray(ModelSharedMemName)</span>
+
+            <span class="c1">#ModelIm = NpShared.UnPackListArray(&quot;%sGrids&quot;%self.IdSharedMem)[iFacet]</span>
+            <span class="n">ModelIm</span> <span class="o">=</span> <span class="n">SM</span><span class="o">.</span><span class="n">_model_dict</span><span class="p">[</span><span class="n">iFacet</span><span class="p">][</span><span class="s2">&quot;FacetGrid&quot;</span><span class="p">]</span>
+            
+            <span class="n">ChanMapping</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">(</span><span class="n">SM</span><span class="o">.</span><span class="n">ChanMappingDegrid</span><span class="p">)</span>
+            <span class="c1"># print ChanMapping</span>
+            
+            <span class="n">GridMachine</span><span class="o">.</span><span class="n">LSmear</span><span class="o">=</span><span class="p">[]</span>
+            <span class="n">DecorrMode</span> <span class="o">=</span> <span class="n">SM</span><span class="o">.</span><span class="n">GD</span><span class="p">[</span><span class="s2">&quot;RIME&quot;</span><span class="p">][</span><span class="s2">&quot;DecorrMode&quot;</span><span class="p">]</span>
+            <span class="n">CondSmear</span><span class="o">=</span><span class="p">(</span><span class="ow">not</span> <span class="n">ForceNoDecorr</span><span class="p">)</span> <span class="ow">and</span> <span class="p">((</span><span class="s1">&#39;F&#39;</span> <span class="ow">in</span> <span class="n">DecorrMode</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="s2">&quot;T&quot;</span> <span class="ow">in</span> <span class="n">DecorrMode</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">CondSmear</span><span class="p">:</span>
+                <span class="c1">#print &quot;DOSMEAR&quot;,ForceNoDecorr, ((&#39;F&#39; in DecorrMode) | (&quot;T&quot; in DecorrMode))</span>
+                <span class="n">uvw_dt</span> <span class="o">=</span> <span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;UVW_dt&quot;</span><span class="p">]</span><span class="c1">#DATA[&quot;uvw_dt&quot;]</span>
+                <span class="n">lm_min</span><span class="o">=</span><span class="kc">None</span>
+                <span class="k">if</span> <span class="n">SM</span><span class="o">.</span><span class="n">GD</span><span class="p">[</span><span class="s2">&quot;RIME&quot;</span><span class="p">][</span><span class="s2">&quot;DecorrLocation&quot;</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;Edge&quot;</span><span class="p">:</span>
+                    <span class="n">lm_min</span><span class="o">=</span><span class="n">SM</span><span class="o">.</span><span class="n">DicoImager</span><span class="p">[</span><span class="n">iFacet</span><span class="p">][</span><span class="s2">&quot;lm_min&quot;</span><span class="p">]</span>
+                <span class="n">GridMachine</span><span class="o">.</span><span class="n">setDecorr</span><span class="p">(</span><span class="n">uvw_dt</span><span class="p">,</span> <span class="n">DT</span><span class="p">,</span> <span class="n">Dnu</span><span class="p">,</span> <span class="n">SmearMode</span><span class="o">=</span><span class="n">SM</span><span class="o">.</span><span class="n">GD</span><span class="p">[</span><span class="s2">&quot;RIME&quot;</span><span class="p">][</span><span class="s2">&quot;DecorrMode&quot;</span><span class="p">],</span> <span class="n">lm_min</span><span class="o">=</span><span class="n">lm_min</span><span class="p">)</span>
+                
+
+            <span class="n">T</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="s2">&quot;2: Stuff&quot;</span><span class="p">)</span>
+
+            <span class="c1"># print &quot;&quot;&quot;</span>
+            <span class="c1"># print times.shape,times.dtype</span>
+            <span class="c1"># print uvwThis.shape,uvwThis.dtype</span>
+            <span class="c1"># print ColOutDir.shape,ColOutDir.dtype</span>
+            <span class="c1"># print flagsThis.shape,flagsThis.dtype</span>
+            <span class="c1"># print ModelIm.shape,ModelIm.dtype&quot;&quot;&quot;</span>
+            
+            <span class="c1"># print times.shape,times.dtype</span>
+            <span class="c1"># print uvwThis.shape,uvwThis.dtype</span>
+            <span class="c1"># print ColOutDir.shape,ColOutDir.dtype</span>
+            <span class="c1"># print flagsThis.shape,flagsThis.dtype</span>
+            <span class="c1"># print ModelIm.shape,ModelIm.dtype</span>
+            <span class="c1"># stop</span>
+            <span class="n">vis</span><span class="o">=</span><span class="n">GridMachine</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">times</span><span class="p">,</span><span class="n">uvwThis</span><span class="p">,</span><span class="n">ColOutDir</span><span class="p">,</span><span class="n">flagsThis</span><span class="p">,</span><span class="n">A0A1</span><span class="p">,</span><span class="n">ModelIm</span><span class="p">,</span><span class="n">DicoJonesMatrices</span><span class="o">=</span><span class="n">DicoJonesMatrices</span><span class="p">,</span><span class="n">freqs</span><span class="o">=</span><span class="n">freqs</span><span class="p">,</span>
+                                <span class="n">ImToGrid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">ChanMapping</span><span class="o">=</span><span class="n">ChanMapping</span><span class="p">)</span>
+            <span class="n">T</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="s2">&quot;2: Predict&quot;</span><span class="p">)</span>
+            <span class="c1"># get() is substracting</span>
+            <span class="k">if</span> <span class="n">ApplyTimeJones</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_BeamAtFacet</span><span class="p">:</span>
+                <span class="n">ParamJonesList</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GiveParamJonesList</span><span class="p">(</span><span class="n">ApplyTimeJones</span><span class="p">,</span><span class="n">A0</span><span class="p">,</span><span class="n">A1</span><span class="p">)</span>
+                <span class="n">ParamJonesList</span><span class="o">=</span><span class="n">ParamJonesList</span><span class="o">+</span><span class="p">[</span><span class="n">iFacet</span><span class="p">]</span>
+
+                <span class="c1"># print &quot;facet&quot;</span>
+                <span class="c1"># import killMS.Other.rad2hmsdms</span>
+                <span class="c1"># RA,DEC=SM.DicoImager[iFacet][&quot;RaDec&quot;]</span>
+                <span class="c1"># sra=killMS.Other.rad2hmsdms.rad2hmsdms(RA,Type=&quot;ra&quot;)</span>
+                <span class="c1"># sdec=killMS.Other.rad2hmsdms.rad2hmsdms(DEC,Type=&quot;dec&quot;)</span>
+                <span class="c1"># print iFacet,sra,sdec</span>
+                
+                <span class="n">predict</span><span class="o">.</span><span class="n">ApplyJones</span><span class="p">(</span><span class="n">ColOutDir</span><span class="p">,</span><span class="n">ParamJonesList</span><span class="p">)</span>
+
+
+            <span class="n">DataOut</span><span class="o">-=</span><span class="n">ColOutDir</span>
+            <span class="n">ColOutDir</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            
+        <span class="k">if</span> <span class="n">ApplyTimeJones</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_BeamAtFacet</span><span class="p">:</span>
+            <span class="c1">#print &quot;tessel&quot;</span>
+            <span class="c1">#print &quot;apply in direction %i&quot;%iDirection</span>
+            <span class="n">ParamJonesList</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GiveParamJonesList</span><span class="p">(</span><span class="n">ApplyTimeJones</span><span class="p">,</span><span class="n">A0</span><span class="p">,</span><span class="n">A1</span><span class="p">)</span>
+            <span class="n">ParamJonesList</span><span class="o">=</span><span class="n">ParamJonesList</span><span class="o">+</span><span class="p">[</span><span class="n">iDirection</span><span class="p">]</span>
+            <span class="n">predict</span><span class="o">.</span><span class="n">ApplyJones</span><span class="p">(</span><span class="n">DataOut</span><span class="p">,</span><span class="n">ParamJonesList</span><span class="p">)</span>
+            <span class="n">T</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="s2">&quot;apply&quot;</span><span class="p">)</span>
+            
+
+
+        <span class="n">T</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="s2">&quot;2: End&quot;</span><span class="p">)</span>
+
+
+        <span class="k">return</span> <span class="n">DataOut</span></div>
+</div>
+
+
+
+<span class="c1">#####################################################</span>
+
+
+<div class="viewcode-block" id="ClassPredictParallel">
+<a class="viewcode-back" href="../../../api/killMS.Predict.html#killMS.Predict.PredictGaussPoints_NumExpr5.ClassPredictParallel">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ClassPredictParallel</span><span class="p">():</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">Precision</span><span class="o">=</span><span class="s2">&quot;S&quot;</span><span class="p">,</span>
+                 <span class="n">NCPU</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+                 <span class="n">IdMemShared</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+                 <span class="n">DoSmearing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">BeamAtFacet</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NCPU</span><span class="o">=</span><span class="n">NCPU</span>
+        <span class="n">ne</span><span class="o">.</span><span class="n">set_num_threads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">NCPU</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">Precision</span><span class="o">==</span><span class="s2">&quot;D&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CType</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex128</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">FType</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span>
+        <span class="k">if</span> <span class="n">Precision</span><span class="o">==</span><span class="s2">&quot;S&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CType</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex64</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">FType</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">IdMemShared</span><span class="o">=</span><span class="n">IdMemShared</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DoSmearing</span><span class="o">=</span><span class="n">DoSmearing</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_BeamAtFacet</span> <span class="o">=</span> <span class="n">BeamAtFacet</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">PM</span><span class="o">=</span><span class="n">ClassPredict</span><span class="p">(</span><span class="n">Precision</span><span class="o">=</span><span class="n">Precision</span><span class="p">,</span><span class="n">NCPU</span><span class="o">=</span><span class="n">NCPU</span><span class="p">,</span><span class="n">IdMemShared</span><span class="o">=</span><span class="n">IdMemShared</span><span class="p">,</span>
+                             <span class="n">DoSmearing</span><span class="o">=</span><span class="n">DoSmearing</span><span class="p">,</span><span class="n">BeamAtFacet</span><span class="o">=</span><span class="n">BeamAtFacet</span><span class="p">)</span>
+
+
+
+
+
+<div class="viewcode-block" id="ClassPredictParallel.GiveCovariance">
+<a class="viewcode-back" href="../../../api/killMS.Predict.html#killMS.Predict.PredictGaussPoints_NumExpr5.ClassPredictParallel.GiveCovariance">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">GiveCovariance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                       <span class="n">DicoDataIn</span><span class="p">,</span>
+                       <span class="n">ApplyTimeJones</span><span class="p">,</span>
+                       <span class="n">SM</span><span class="p">,</span>
+                       <span class="n">Mode</span><span class="o">=</span><span class="s2">&quot;DDECovariance&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Updates covariance weights</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">DicoData</span><span class="o">=</span><span class="n">NpShared</span><span class="o">.</span><span class="n">DicoToShared</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">DicoMemChunk&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">IdMemShared</span><span class="p">),</span><span class="n">DicoDataIn</span><span class="p">,</span><span class="n">DelInput</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">ApplyTimeJones</span><span class="o">!=</span><span class="kc">None</span><span class="p">:</span>
+            <span class="n">ApplyTimeJones</span><span class="o">=</span><span class="n">NpShared</span><span class="o">.</span><span class="n">DicoToShared</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">ApplyTimeJones&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">IdMemShared</span><span class="p">),</span><span class="n">ApplyTimeJones</span><span class="p">,</span><span class="n">DelInput</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">nrow</span><span class="p">,</span><span class="n">nch</span><span class="p">,</span><span class="n">_</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
+        
+        <span class="n">RowList</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">nrow</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">NCPU</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">row0</span><span class="o">=</span><span class="n">RowList</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">row1</span><span class="o">=</span><span class="n">RowList</span><span class="p">[</span><span class="mi">1</span><span class="p">::]</span>
+        
+        <span class="n">work_queue</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+        <span class="n">result_queue</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+
+        <span class="n">workerlist</span><span class="o">=</span><span class="p">[]</span>
+        <span class="n">NCPU</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">NCPU</span>
+        
+        <span class="c1"># NpShared.DelArray(&quot;%sCorrectedData&quot;%(self.IdMemShared))</span>
+        <span class="c1"># CorrectedData=NpShared.SharedArray.create(&quot;%sCorrectedData&quot;%(self.IdMemShared),DicoData[&quot;data&quot;].shape,dtype=DicoData[&quot;data&quot;].dtype)</span>
+        <span class="c1"># CorrectedData=</span>
+
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NCPU</span><span class="p">):</span>
+            <span class="n">W</span><span class="o">=</span><span class="n">WorkerPredict</span><span class="p">(</span><span class="n">work_queue</span><span class="p">,</span> <span class="n">result_queue</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">IdMemShared</span><span class="p">,</span><span class="n">Mode</span><span class="o">=</span><span class="n">Mode</span><span class="p">,</span><span class="n">DoSmearing</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">DoSmearing</span><span class="p">,</span><span class="n">SM</span><span class="o">=</span><span class="n">SM</span><span class="p">,</span><span class="n">BeamAtFacet</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_BeamAtFacet</span><span class="p">)</span>
+            <span class="n">workerlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">W</span><span class="p">)</span>
+            <span class="n">workerlist</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="n">NJobs</span><span class="o">=</span><span class="n">row0</span><span class="o">.</span><span class="n">size</span>
+        <span class="k">for</span> <span class="n">iJob</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NJobs</span><span class="p">):</span>
+            <span class="n">ThisJob</span><span class="o">=</span><span class="n">row0</span><span class="p">[</span><span class="n">iJob</span><span class="p">],</span><span class="n">row1</span><span class="p">[</span><span class="n">iJob</span><span class="p">]</span>
+            <span class="n">work_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">ThisJob</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="nb">int</span><span class="p">(</span><span class="n">result_queue</span><span class="o">.</span><span class="n">qsize</span><span class="p">())</span><span class="o">&lt;</span><span class="n">NJobs</span><span class="p">:</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+            <span class="k">continue</span>
+ 
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NCPU</span><span class="p">):</span>
+            <span class="n">workerlist</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
+            <span class="n">workerlist</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+            <span class="n">workerlist</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+
+        <span class="n">DicoDataIn</span><span class="p">[</span><span class="s2">&quot;W&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;W&quot;</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="ClassPredictParallel.ApplyCal">
+<a class="viewcode-back" href="../../../api/killMS.Predict.html#killMS.Predict.PredictGaussPoints_NumExpr5.ClassPredictParallel.ApplyCal">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ApplyCal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">DicoDataIn</span><span class="p">,</span>
+                 <span class="n">ApplyTimeJones</span><span class="p">,</span>
+                 <span class="n">iCluster</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Applies gain corrections to visibilities&#39;&#39;&#39;</span>
+        <span class="n">DicoData</span><span class="o">=</span><span class="n">NpShared</span><span class="o">.</span><span class="n">DicoToShared</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">DicoMemChunk&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">IdMemShared</span><span class="p">),</span><span class="n">DicoDataIn</span><span class="p">,</span><span class="n">DelInput</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ApplyTimeJones</span><span class="o">!=</span><span class="kc">None</span><span class="p">:</span>
+            <span class="n">ApplyTimeJones</span><span class="o">=</span><span class="n">NpShared</span><span class="o">.</span><span class="n">DicoToShared</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">ApplyTimeJones&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">IdMemShared</span><span class="p">),</span><span class="n">ApplyTimeJones</span><span class="p">,</span><span class="n">DelInput</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">nrow</span><span class="p">,</span><span class="n">nch</span><span class="p">,</span><span class="n">_</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
+        
+        <span class="n">RowList</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">nrow</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">NCPU</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">row0</span><span class="o">=</span><span class="n">RowList</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">row1</span><span class="o">=</span><span class="n">RowList</span><span class="p">[</span><span class="mi">1</span><span class="p">::]</span>
+        
+        <span class="n">work_queue</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+        <span class="n">result_queue</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+
+        <span class="n">workerlist</span><span class="o">=</span><span class="p">[]</span>
+        <span class="n">NCPU</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">NCPU</span>
+        
+        <span class="c1"># NpShared.DelArray(&quot;%sCorrectedData&quot;%(self.IdMemShared))</span>
+        <span class="c1"># CorrectedData=NpShared.SharedArray.create(&quot;%sCorrectedData&quot;%(self.IdMemShared),DicoData[&quot;data&quot;].shape,dtype=DicoData[&quot;data&quot;].dtype)</span>
+        <span class="c1"># CorrectedData=</span>
+
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NCPU</span><span class="p">):</span>
+            <span class="n">W</span><span class="o">=</span><span class="n">WorkerPredict</span><span class="p">(</span><span class="n">work_queue</span><span class="p">,</span> <span class="n">result_queue</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">IdMemShared</span><span class="p">,</span><span class="n">Mode</span><span class="o">=</span><span class="s2">&quot;ApplyCal&quot;</span><span class="p">,</span><span class="n">iCluster</span><span class="o">=</span><span class="n">iCluster</span><span class="p">,</span><span class="n">BeamAtFacet</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_BeamAtFacet</span><span class="p">)</span>
+            <span class="n">workerlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">W</span><span class="p">)</span>
+            <span class="n">workerlist</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="n">NJobs</span><span class="o">=</span><span class="n">row0</span><span class="o">.</span><span class="n">size</span>
+        <span class="k">for</span> <span class="n">iJob</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NJobs</span><span class="p">):</span>
+            <span class="n">ThisJob</span><span class="o">=</span><span class="n">row0</span><span class="p">[</span><span class="n">iJob</span><span class="p">],</span><span class="n">row1</span><span class="p">[</span><span class="n">iJob</span><span class="p">]</span>
+            <span class="n">work_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">ThisJob</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="nb">int</span><span class="p">(</span><span class="n">result_queue</span><span class="o">.</span><span class="n">qsize</span><span class="p">())</span><span class="o">&lt;</span><span class="n">NJobs</span><span class="p">:</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+            <span class="k">continue</span>
+ 
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NCPU</span><span class="p">):</span>
+            <span class="n">workerlist</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
+            <span class="n">workerlist</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+            <span class="n">workerlist</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+
+        <span class="n">DicoDataIn</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="ClassPredictParallel.predictKernelPolCluster">
+<a class="viewcode-back" href="../../../api/killMS.Predict.html#killMS.Predict.PredictGaussPoints_NumExpr5.ClassPredictParallel.predictKernelPolCluster">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">predictKernelPolCluster</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                <span class="n">DicoData</span><span class="p">,</span>
+                                <span class="n">SM</span><span class="p">,</span>
+                                <span class="n">iDirection</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                <span class="n">ApplyJones</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                <span class="n">ApplyTimeJones</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                <span class="n">Noise</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NpShared</span><span class="o">.</span><span class="n">SharedArray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Make model data. Why PolCluster? Per-Cluster? Why Pol?&#39;&#39;&#39;</span>
+        <span class="n">DicoData</span><span class="o">=</span><span class="n">NpShared</span><span class="o">.</span><span class="n">DicoToShared</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">DicoMemChunk&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">IdMemShared</span><span class="p">),</span><span class="n">DicoData</span><span class="p">,</span><span class="n">DelInput</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ApplyTimeJones</span><span class="o">!=</span><span class="kc">None</span><span class="p">:</span>
+            <span class="n">ApplyTimeJones</span><span class="o">=</span><span class="n">NpShared</span><span class="o">.</span><span class="n">DicoToShared</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">ApplyTimeJones&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">IdMemShared</span><span class="p">),</span><span class="n">ApplyTimeJones</span><span class="p">,</span><span class="n">DelInput</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">nrow</span><span class="p">,</span><span class="n">nch</span><span class="p">,</span><span class="n">_</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
+        
+        <span class="n">RowList</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">nrow</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">NCPU</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">row0</span><span class="o">=</span><span class="n">RowList</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">row1</span><span class="o">=</span><span class="n">RowList</span><span class="p">[</span><span class="mi">1</span><span class="p">::]</span>
+        
+        <span class="n">work_queue</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+        <span class="n">result_queue</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+
+        <span class="n">workerlist</span><span class="o">=</span><span class="p">[]</span>
+        <span class="n">NCPU</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">NCPU</span>
+        
+        <span class="n">NpShared</span><span class="o">.</span><span class="n">DelArray</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">PredictData&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">IdMemShared</span><span class="p">))</span>
+        <span class="n">PredictArray</span><span class="o">=</span><span class="n">NpShared</span><span class="o">.</span><span class="n">SharedArray</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">PredictData&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">IdMemShared</span><span class="p">),</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NCPU</span><span class="p">):</span>
+            <span class="n">W</span><span class="o">=</span><span class="n">WorkerPredict</span><span class="p">(</span><span class="n">work_queue</span><span class="p">,</span> <span class="n">result_queue</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">IdMemShared</span><span class="p">,</span><span class="n">SM</span><span class="o">=</span><span class="n">SM</span><span class="p">,</span><span class="n">DoSmearing</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">DoSmearing</span><span class="p">,</span><span class="n">BeamAtFacet</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_BeamAtFacet</span><span class="p">)</span>
+            <span class="n">workerlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">W</span><span class="p">)</span>
+            <span class="n">workerlist</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="n">NJobs</span><span class="o">=</span><span class="n">row0</span><span class="o">.</span><span class="n">size</span>
+        <span class="k">for</span> <span class="n">iJob</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NJobs</span><span class="p">):</span>
+            <span class="n">ThisJob</span><span class="o">=</span><span class="n">row0</span><span class="p">[</span><span class="n">iJob</span><span class="p">],</span><span class="n">row1</span><span class="p">[</span><span class="n">iJob</span><span class="p">]</span>
+            <span class="n">work_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">ThisJob</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="nb">int</span><span class="p">(</span><span class="n">result_queue</span><span class="o">.</span><span class="n">qsize</span><span class="p">())</span><span class="o">&lt;</span><span class="n">NJobs</span><span class="p">:</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+            <span class="k">continue</span>
+ 
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NCPU</span><span class="p">):</span>
+            <span class="n">workerlist</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
+            <span class="n">workerlist</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+            <span class="n">workerlist</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+            
+        <span class="k">return</span> <span class="n">PredictArray</span></div>
+</div>
+
+
+
+
+<div class="viewcode-block" id="WorkerPredict">
+<a class="viewcode-back" href="../../../api/killMS.Predict.html#killMS.Predict.PredictGaussPoints_NumExpr5.WorkerPredict">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WorkerPredict</span><span class="p">(</span><span class="n">multiprocessing</span><span class="o">.</span><span class="n">Process</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Individual worker class for model_data prediction&#39;&#39;&#39;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">work_queue</span><span class="p">,</span>
+                 <span class="n">result_queue</span><span class="p">,</span>
+                 <span class="n">IdSharedMem</span><span class="p">,</span>
+                 <span class="n">SM</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">Mode</span><span class="o">=</span><span class="s2">&quot;Predict&quot;</span><span class="p">,</span>
+                 <span class="n">iCluster</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                 <span class="n">DoSmearing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">BeamAtFacet</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Process</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">work_queue</span> <span class="o">=</span> <span class="n">work_queue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">result_queue</span> <span class="o">=</span> <span class="n">result_queue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kill_received</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exit</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="o">=</span><span class="n">SM</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">IdSharedMem</span><span class="o">=</span><span class="n">IdSharedMem</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Mode</span><span class="o">=</span><span class="n">Mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iCluster</span><span class="o">=</span><span class="n">iCluster</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DoSmearing</span><span class="o">=</span><span class="n">DoSmearing</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_BeamAtFacet</span> <span class="o">=</span> <span class="n">BeamAtFacet</span>
+
+<div class="viewcode-block" id="WorkerPredict.shutdown">
+<a class="viewcode-back" href="../../../api/killMS.Predict.html#killMS.Predict.PredictGaussPoints_NumExpr5.WorkerPredict.shutdown">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">shutdown</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exit</span><span class="o">.</span><span class="n">set</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="WorkerPredict.run">
+<a class="viewcode-back" href="../../../api/killMS.Predict.html#killMS.Predict.PredictGaussPoints_NumExpr5.WorkerPredict.run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">kill_received</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">Row0</span><span class="p">,</span><span class="n">Row1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">work_queue</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">break</span>
+
+            <span class="n">D</span><span class="o">=</span><span class="n">NpShared</span><span class="o">.</span><span class="n">SharedToDico</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">DicoMemChunk&quot;</span><span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">IdSharedMem</span><span class="p">)</span>
+            <span class="n">DicoData</span><span class="o">=</span><span class="p">{}</span>
+            <span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">D</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="n">Row0</span><span class="p">:</span><span class="n">Row1</span><span class="p">]</span>
+            <span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;flags&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">D</span><span class="p">[</span><span class="s2">&quot;flags&quot;</span><span class="p">][</span><span class="n">Row0</span><span class="p">:</span><span class="n">Row1</span><span class="p">]</span>
+            <span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;A0&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">D</span><span class="p">[</span><span class="s2">&quot;A0&quot;</span><span class="p">][</span><span class="n">Row0</span><span class="p">:</span><span class="n">Row1</span><span class="p">]</span>
+            <span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;A1&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">D</span><span class="p">[</span><span class="s2">&quot;A1&quot;</span><span class="p">][</span><span class="n">Row0</span><span class="p">:</span><span class="n">Row1</span><span class="p">]</span>
+            <span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;times&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">D</span><span class="p">[</span><span class="s2">&quot;times&quot;</span><span class="p">][</span><span class="n">Row0</span><span class="p">:</span><span class="n">Row1</span><span class="p">]</span>
+            <span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;uvw&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">D</span><span class="p">[</span><span class="s2">&quot;uvw&quot;</span><span class="p">][</span><span class="n">Row0</span><span class="p">:</span><span class="n">Row1</span><span class="p">]</span>
+            <span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;freqs&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">D</span><span class="p">[</span><span class="s2">&quot;freqs&quot;</span><span class="p">]</span>
+            <span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;dfreqs&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">D</span><span class="p">[</span><span class="s2">&quot;dfreqs&quot;</span><span class="p">]</span>
+            <span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;freqs_full&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">D</span><span class="p">[</span><span class="s2">&quot;freqs_full&quot;</span><span class="p">]</span>
+            <span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;dfreqs_full&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">D</span><span class="p">[</span><span class="s2">&quot;dfreqs_full&quot;</span><span class="p">]</span>
+            <span class="c1"># DicoData[&quot;UVW_dt&quot;]=D[&quot;UVW_dt&quot;]</span>
+            <span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;infos&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">D</span><span class="p">[</span><span class="s2">&quot;infos&quot;</span><span class="p">]</span>
+
+            <span class="c1">#DicoData[&quot;IndRows_All_UVW_dt&quot;]=D[&quot;IndRows_All_UVW_dt&quot;]</span>
+            <span class="c1">#DicoData[&quot;All_UVW_dt&quot;]=D[&quot;All_UVW_dt&quot;]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">DoSmearing</span> <span class="ow">and</span> <span class="s2">&quot;T&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">DoSmearing</span><span class="p">:</span>
+                <span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;UVW_dt&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">D</span><span class="p">[</span><span class="s2">&quot;UVW_dt&quot;</span><span class="p">][</span><span class="n">Row0</span><span class="p">:</span><span class="n">Row1</span><span class="p">]</span>
+
+            <span class="c1"># DicoData[&quot;IndexTimesThisChunk&quot;]=D[&quot;IndexTimesThisChunk&quot;][Row0:Row1]</span>
+            <span class="c1"># it0=np.min(DicoData[&quot;IndexTimesThisChunk&quot;])</span>
+            <span class="c1"># it1=np.max(DicoData[&quot;IndexTimesThisChunk&quot;])+1</span>
+            <span class="c1"># DicoData[&quot;UVW_RefAnt&quot;]=D[&quot;UVW_RefAnt&quot;][it0:it1,:,:]</span>
+
+            <span class="k">if</span> <span class="s2">&quot;W&quot;</span> <span class="ow">in</span> <span class="n">D</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;W&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">D</span><span class="p">[</span><span class="s2">&quot;W&quot;</span><span class="p">][</span><span class="n">Row0</span><span class="p">:</span><span class="n">Row1</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="s2">&quot;resid&quot;</span> <span class="ow">in</span> <span class="n">D</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">DicoData</span><span class="p">[</span><span class="s2">&quot;resid&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">D</span><span class="p">[</span><span class="s2">&quot;resid&quot;</span><span class="p">][</span><span class="n">Row0</span><span class="p">:</span><span class="n">Row1</span><span class="p">]</span>
+
+            <span class="n">ApplyTimeJones</span><span class="o">=</span><span class="n">NpShared</span><span class="o">.</span><span class="n">SharedToDico</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">ApplyTimeJones&quot;</span><span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">IdSharedMem</span><span class="p">)</span>
+            <span class="c1">#JonesMatrices=ApplyTimeJones[&quot;Beam&quot;]</span>
+            <span class="c1">#print ApplyTimeJones[&quot;Beam&quot;].flags</span>
+            <span class="n">ApplyTimeJones</span><span class="p">[</span><span class="s2">&quot;Map_VisToJones_Time&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">ApplyTimeJones</span><span class="p">[</span><span class="s2">&quot;Map_VisToJones_Time&quot;</span><span class="p">][</span><span class="n">Row0</span><span class="p">:</span><span class="n">Row1</span><span class="p">]</span>
+            
+            <span class="n">PM</span><span class="o">=</span><span class="n">ClassPredict</span><span class="p">(</span><span class="n">NCPU</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">DoSmearing</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">DoSmearing</span><span class="p">,</span><span class="n">BeamAtFacet</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_BeamAtFacet</span><span class="p">)</span>
+            
+            <span class="c1">#print DicoData.keys()</span>
+
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Mode</span><span class="o">==</span><span class="s2">&quot;Predict&quot;</span><span class="p">:</span>
+                <span class="n">PredictData</span><span class="o">=</span><span class="n">PM</span><span class="o">.</span><span class="n">predictKernelPolCluster</span><span class="p">(</span><span class="n">DicoData</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="p">,</span><span class="n">ApplyTimeJones</span><span class="o">=</span><span class="n">ApplyTimeJones</span><span class="p">)</span>
+                <span class="n">PredictArray</span><span class="o">=</span><span class="n">NpShared</span><span class="o">.</span><span class="n">GiveArray</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">PredictData&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">IdSharedMem</span><span class="p">))</span>
+                <span class="n">PredictArray</span><span class="p">[</span><span class="n">Row0</span><span class="p">:</span><span class="n">Row1</span><span class="p">]</span><span class="o">=</span><span class="n">PredictData</span><span class="p">[:]</span>
+
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">Mode</span><span class="o">==</span><span class="s2">&quot;ApplyCal&quot;</span><span class="p">:</span>
+                <span class="n">PM</span><span class="o">.</span><span class="n">ApplyCal</span><span class="p">(</span><span class="n">DicoData</span><span class="p">,</span><span class="n">ApplyTimeJones</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">iCluster</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">Mode</span><span class="o">==</span><span class="s2">&quot;DDECovariance&quot;</span><span class="p">:</span>
+                <span class="n">PM</span><span class="o">.</span><span class="n">GiveCovariance</span><span class="p">(</span><span class="n">DicoData</span><span class="p">,</span><span class="n">ApplyTimeJones</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">Mode</span><span class="o">==</span><span class="s2">&quot;ResidAntCovariance&quot;</span><span class="p">:</span>
+                <span class="n">PM</span><span class="o">.</span><span class="n">GiveResidAntCovariance</span><span class="p">(</span><span class="n">DicoData</span><span class="p">,</span><span class="n">ApplyTimeJones</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="p">)</span>
+
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">result_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">killMS</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">killMS</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Cyril Tasse.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

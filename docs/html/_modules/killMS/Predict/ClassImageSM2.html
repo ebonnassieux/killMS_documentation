@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>killMS.Predict.ClassImageSM2 &#8212; killMS 0.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <script src="../../../_static/documentation_options.js?v=01f34227"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for killMS.Predict.ClassImageSM2</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">killMS, a package for calibration in radio interferometry.</span>
+<span class="sd">Copyright (C) 2013-2017  Cyril Tasse, l&#39;Observatoire de Paris,</span>
+<span class="sd">SKA South Africa, Rhodes University</span>
+
+<span class="sd">This program is free software; you can redistribute it and/or</span>
+<span class="sd">modify it under the terms of the GNU General Public License</span>
+<span class="sd">as published by the Free Software Foundation; either version 2</span>
+<span class="sd">of the License, or (at your option) any later version.</span>
+
+<span class="sd">This program is distributed in the hope that it will be useful,</span>
+<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="sd">GNU General Public License for more details.</span>
+
+<span class="sd">You should have received a copy of the GNU General Public License</span>
+<span class="sd">along with this program; if not, write to the Free Software</span>
+<span class="sd">Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">absolute_import</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">division</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">DDFacet.Imager.ClassDeconvMachine</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClassImagerDeconv</span> <span class="c1"># ddf import</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyrap.images</span><span class="w"> </span><span class="kn">import</span> <span class="n">image</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">killMS.Array</span><span class="w"> </span><span class="kn">import</span> <span class="n">NpShared</span> <span class="c1"># ok</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">killMS.Other</span><span class="w"> </span><span class="kn">import</span> <span class="n">reformat</span> <span class="c1"># ok</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">killMS.Other</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModColor</span> <span class="c1"># ok</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">DDFacet.Other</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
+<span class="n">log</span><span class="o">=</span><span class="n">logger</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;ClassImageSM&quot;</span><span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">DDFacet.Other.progressbar</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProgressBar</span> <span class="c1"># ddf import</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">DDFacet.ToolsDir.GiveEdges</span><span class="w"> </span><span class="kn">import</span> <span class="n">GiveEdges</span> <span class="c1"># ddf import</span>
+<span class="c1">#from DDFacet.Imager.ClassModelMachine import ClassModelMachine</span>
+<span class="c1">#print &quot;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!&quot;</span>
+<span class="c1">#from DDFacet.Imager.ClassModelMachineGA import ClassModelMachine</span>
+<span class="c1">#from DDFacet.Imager.ModModelMachine import GiveModelMachine</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">DDFacet.Imager.ClassImToGrid</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClassImToGrid</span> <span class="c1"># ddf import</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">DDFacet.Other.MyPickle</span> <span class="c1"># ddf import</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">DDFacet.Data</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClassVisServer</span> <span class="c1"># ddf import</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pprint</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">DDFacet.Imager.ModModelMachine</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClassModModelMachine</span> <span class="c1"># ddf import</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyrap.tables</span><span class="w"> </span><span class="kn">import</span> <span class="n">table</span>
+
+<div class="viewcode-block" id="ClassImageSM">
+<a class="viewcode-back" href="../../../api/killMS.Predict.html#killMS.Predict.ClassImageSM2.ClassImageSM">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ClassImageSM</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    initialised to read self.Type.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Type</span><span class="o">=</span><span class="s2">&quot;Image&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="ClassPreparePredict">
+<a class="viewcode-back" href="../../../api/killMS.Predict.html#killMS.Predict.ClassImageSM2.ClassPreparePredict">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ClassPreparePredict</span><span class="p">(</span><span class="n">ClassImagerDeconv</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Inherits from DDFacet.Imager.ClassDeconvMachine import ClassImagerDeconv</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">BaseImageName</span><span class="p">,</span><span class="n">VS</span><span class="p">,</span><span class="n">IdSharedMem</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Sets class variables, VisServer, CreateFacetMachines and LoadModel</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">ClassImagerDeconv</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">BaseImageName</span><span class="o">=</span><span class="n">BaseImageName</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">FileDicoModel</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.DicoModel&quot;</span><span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">BaseImageName</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">GD</span><span class="p">[</span><span class="s2">&quot;GDkMS&quot;</span><span class="p">][</span><span class="s2">&quot;ImageSkyModel&quot;</span><span class="p">][</span><span class="s2">&quot;DicoModel&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">ModColor</span><span class="o">.</span><span class="n">Str</span><span class="p">(</span><span class="s2">&quot;Using </span><span class="si">%s</span><span class="s2"> instead of </span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GD</span><span class="p">[</span><span class="s2">&quot;GDkMS&quot;</span><span class="p">][</span><span class="s2">&quot;ImageSkyModel&quot;</span><span class="p">][</span><span class="s2">&quot;DicoModel&quot;</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">FileDicoModel</span><span class="p">)))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">FileDicoModel</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GD</span><span class="p">[</span><span class="s2">&quot;GDkMS&quot;</span><span class="p">][</span><span class="s2">&quot;ImageSkyModel&quot;</span><span class="p">][</span><span class="s2">&quot;DicoModel&quot;</span><span class="p">]</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">ModelImageName</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.model.fits&quot;</span><span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">BaseImageName</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">VS</span><span class="o">=</span><span class="n">VS</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">GD</span><span class="p">[</span><span class="s2">&quot;CF&quot;</span><span class="p">][</span><span class="s2">&quot;wmax&quot;</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;Computing wmax from UVW column&quot;</span><span class="p">)</span>
+            <span class="n">t</span><span class="o">=</span><span class="n">table</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">VS</span><span class="o">.</span><span class="n">ListMS</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">MSName</span><span class="p">,</span><span class="n">ack</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">u</span><span class="p">,</span><span class="n">v</span><span class="p">,</span><span class="n">w</span><span class="o">=</span><span class="n">t</span><span class="o">.</span><span class="n">getcol</span><span class="p">(</span><span class="s2">&quot;UVW&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">GD</span><span class="p">[</span><span class="s2">&quot;CF&quot;</span><span class="p">][</span><span class="s2">&quot;wmax&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">w</span><span class="p">))</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;  found a wmax=</span><span class="si">%f</span><span class="s2"> meters&quot;</span><span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">GD</span><span class="p">[</span><span class="s2">&quot;CF&quot;</span><span class="p">][</span><span class="s2">&quot;wmax&quot;</span><span class="p">])</span>
+            
+
+
+        <span class="c1"># DC=self.GD</span>
+        <span class="c1"># MSName=DC[&quot;VisData&quot;][&quot;MSName&quot;]</span>
+        <span class="c1"># self.VS=ClassVisServer.ClassVisServer(MSName,</span>
+        <span class="c1">#                                       ColName=DC[&quot;VisData&quot;][&quot;ColName&quot;],</span>
+        <span class="c1">#                                       TVisSizeMin=DC[&quot;VisData&quot;][&quot;TChunkSize&quot;]*60,</span>
+        <span class="c1">#                                       #DicoSelectOptions=DicoSelectOptions,</span>
+        <span class="c1">#                                       TChunkSize=DC[&quot;VisData&quot;][&quot;TChunkSize&quot;],</span>
+        <span class="c1">#                                       IdSharedMem=self.IdSharedMem,</span>
+        <span class="c1">#                                       Robust=DC[&quot;ImagerGlobal&quot;][&quot;Robust&quot;],</span>
+        <span class="c1">#                                       Weighting=DC[&quot;ImagerGlobal&quot;][&quot;Weighting&quot;],</span>
+        <span class="c1">#                                       Super=DC[&quot;ImagerGlobal&quot;][&quot;Super&quot;],</span>
+        <span class="c1">#                                       DicoSelectOptions=dict(DC[&quot;DataSelection&quot;]),</span>
+        <span class="c1">#                                       NCPU=self.GD[&quot;Parallel&quot;][&quot;NCPU&quot;],</span>
+        <span class="c1">#                                       GD=self.GD)</span>
+
+        <span class="c1">#self.GD[&quot;GAClean&quot;][&quot;GASolvePars&quot;]=[&quot;S&quot;,&quot;Alpha&quot;]</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">IdSharedMem</span><span class="o">=</span><span class="n">IdSharedMem</span><span class="c1">#kwargs[&quot;IdSharedMem&quot;]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="o">=</span><span class="n">ClassImageSM</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">GD</span><span class="p">[</span><span class="s2">&quot;GDkMS&quot;</span><span class="p">][</span><span class="s2">&quot;ImageSkyModel&quot;</span><span class="p">][</span><span class="s2">&quot;NodesFile&quot;</span><span class="p">]</span><span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">GD</span><span class="p">[</span><span class="s2">&quot;Facets&quot;</span><span class="p">][</span><span class="s2">&quot;CatNodes&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GD</span><span class="p">[</span><span class="s2">&quot;GDkMS&quot;</span><span class="p">][</span><span class="s2">&quot;ImageSkyModel&quot;</span><span class="p">][</span><span class="s2">&quot;NodesFile&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">GD</span><span class="p">[</span><span class="s2">&quot;DDESolutions&quot;</span><span class="p">][</span><span class="s2">&quot;DDSols&quot;</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span>
+            
+        <span class="c1"># self.InitFacetMachine()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CreateFacetMachines</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">LoadModel</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ClassPreparePredict.LoadModel">
+<a class="viewcode-back" href="../../../api/killMS.Predict.html#killMS.Predict.ClassImageSM2.ClassPreparePredict.LoadModel">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">LoadModel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span> <span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Start by initialising the ClassModModelMachine from the globaldict</span>
+<span class="sd">        build self.MM as GiveInitialisedMMFFromFile on the FileDicoModel</span>
+<span class="sd">        if asked to filter negative components, do so</span>
+<span class="sd">        if MaskImage is provided, initialise CleanMaskedComponents</span>
+<span class="sd">        get model_freqs from VS.FreqBandChannelsDegrid</span>
+<span class="sd">        get ModelImage from self.MM.GiveModelImage</span>
+<span class="sd">        set self.FacetMachine.ToCasaImage</span>
+<span class="sd">        set NFacets</span>
+<span class="sd">        read NodesCat</span>
+<span class="sd">        build ClusterCat. TODO: ETN: GENERALISE THIS IN THE SCHEMA</span>
+<span class="sd">        build catalog TODO:ETN: BIS</span>
+<span class="sd">        per-facet, read l,m, build distance grid</span>
+<span class="sd">        per-facet, get self.FacetMachine.DicoImager from idDir</span>
+<span class="sd">        set self.SM.ClusterCat, self.SM&gt;SourceCat</span>
+<span class="sd">        import APP from DDF multiprocess</span>
+<span class="sd">        startworkers</span>
+<span class="sd">        FacetMachine.initCFInBackground</span>
+<span class="sd">        self.FacetMachine.awaitInitCompletion</span>
+<span class="sd">        initialise class variables from the above</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        
+        <span class="c1"># ClassModelMachine,DicoModel=GiveModelMachine(self.FileDicoModel)</span>
+        <span class="c1"># try:</span>
+        <span class="c1">#     self.GD[&quot;GAClean&quot;][&quot;GASolvePars&quot;]=DicoModel[&quot;SolveParam&quot;]</span>
+        <span class="c1"># except:</span>
+        <span class="c1">#     self.GD[&quot;GAClean&quot;][&quot;GASolvePars&quot;]=[&quot;S&quot;,&quot;Alpha&quot;]</span>
+        <span class="c1">#     DicoModel[&quot;SolveParam&quot;]=self.GD[&quot;GAClean&quot;][&quot;GASolvePars&quot;]</span>
+        <span class="c1"># self.MM=ClassModelMachine(self.GD)</span>
+        <span class="c1"># self.MM.FromDico(DicoModel)</span>
+
+        <span class="c1"># From DicoModel</span>
+        <span class="n">ModConstructor</span> <span class="o">=</span> <span class="n">ClassModModelMachine</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GD</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">MM</span><span class="o">=</span><span class="n">ModConstructor</span><span class="o">.</span><span class="n">GiveInitialisedMMFromFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">FileDicoModel</span><span class="p">)</span>
+        <span class="c1">#ModelImage0=self.MM.GiveModelImage(np.mean(self.VS.MS.ChanFreq))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">GD</span><span class="p">[</span><span class="s2">&quot;GDkMS&quot;</span><span class="p">][</span><span class="s2">&quot;ImageSkyModel&quot;</span><span class="p">][</span><span class="s2">&quot;FilterNegComp&quot;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">MM</span><span class="o">.</span><span class="n">FilterNegComponants</span><span class="p">(</span><span class="n">box</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span><span class="n">sig</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">GD</span><span class="p">[</span><span class="s2">&quot;GDkMS&quot;</span><span class="p">][</span><span class="s2">&quot;ImageSkyModel&quot;</span><span class="p">][</span><span class="s2">&quot;MaskImage&quot;</span><span class="p">]</span><span class="o">!=</span><span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">MM</span><span class="o">.</span><span class="n">CleanMaskedComponants</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GD</span><span class="p">[</span><span class="s2">&quot;GDkMS&quot;</span><span class="p">][</span><span class="s2">&quot;ImageSkyModel&quot;</span><span class="p">][</span><span class="s2">&quot;MaskImage&quot;</span><span class="p">])</span>
+        <span class="c1">#self.ModelImage=self.MM.GiveModelImage(np.mean(self.VS.MS.ChanFreq))</span>
+        <span class="n">model_freqs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">VS</span><span class="o">.</span><span class="n">FreqBandChannelsDegrid</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># original_freqs=self.VS.FreqBandChannels[0]</span>
+        <span class="c1"># self.MM.setFreqMachine(original_freqs, model_freqs)</span>
+        <span class="n">ModelImage</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">MM</span><span class="o">.</span><span class="n">GiveModelImage</span><span class="p">(</span><span class="n">model_freqs</span><span class="p">)</span>
+        
+        <span class="n">log</span><span class="o">.</span><span class="n">print</span><span class="p">(</span> <span class="s2">&quot;model image @</span><span class="si">%s</span><span class="s2"> MHz (min,max) = (</span><span class="si">%f</span><span class="s2">, </span><span class="si">%f</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">model_freqs</span> <span class="o">/</span> <span class="mf">1e6</span><span class="p">),</span> <span class="n">ModelImage</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">ModelImage</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
+
+        <span class="c1"># # From ModelImage</span>
+        <span class="c1"># print &quot;im!!!!!!!!!!!!!!!!!!!!!!!&quot;</span>
+        <span class="c1"># im=image(&quot;Model.fits&quot;)</span>
+        <span class="c1"># data=im.getdata()</span>
+        <span class="c1"># nch,npol,nx,_=data.shape</span>
+        <span class="c1"># for ch in range(nch):</span>
+        <span class="c1">#     for pol in range(npol):</span>
+        <span class="c1">#         data[ch,pol]=data[ch,pol].T[::-1]</span>
+        <span class="c1"># self.ModelImage=ModelImage=data</span>
+        <span class="c1"># # ###############################</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FacetMachine</span><span class="o">.</span><span class="n">ToCasaImage</span><span class="p">(</span><span class="n">ModelImage</span><span class="p">,</span><span class="n">ImageName</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.Model_kMS&quot;</span><span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">BaseImageName</span><span class="p">,</span><span class="n">Fits</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># #stop</span>
+
+        <span class="c1">#del(data)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">DicoImager</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">FacetMachine</span><span class="o">.</span><span class="n">DicoImager</span>
+        
+        <span class="n">NFacets</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">FacetMachine</span><span class="o">.</span><span class="n">DicoImager</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NFacets</span><span class="o">=</span><span class="n">NFacets</span>
+        
+        <span class="c1">#self.NDirs=NFacets</span>
+        <span class="c1">#self.Dirs=range(self.NDirs)</span>
+
+        <span class="c1"># SolsFile=self.GD[&quot;DDESolutions&quot;][&quot;DDSols&quot;]</span>
+        <span class="c1"># if not(&quot;.npz&quot; in SolsFile):</span>
+        <span class="c1">#     ThisMSName=reformat.reformat(os.path.abspath(self.VS.MSName),LastSlash=False)</span>
+        <span class="c1">#     SolsFile=&quot;%s/killMS.%s.sols.npz&quot;%(self.VS.MSName,SolsFile)</span>
+        <span class="c1">#     #SolsFile=&quot;BOOTES24_SB100-109.2ch8s.ms/killMS.KAFCA.Scalar.50Dir.0.1P.BriggsSq.PreCuster4.sols.npz&quot;</span>
+
+        <span class="c1"># DicoSolsFile=np.load(SolsFile)</span>
+        <span class="c1"># ClusterCat=DicoSolsFile[&quot;ClusterCat&quot;]</span>
+        <span class="c1"># ClusterCat=ClusterCat.view(np.recarray)</span>
+        
+        
+        <span class="c1">#DicoFacetName=&quot;%s.DicoFacet&quot;%self.BaseImageName</span>
+        <span class="c1">#DicoFacet=DDFacet.Other.MyPickle.Load(DicoFacetName)</span>
+        
+        <span class="n">NodeFile</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.NodesCat.npy&quot;</span><span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">GD</span><span class="p">[</span><span class="s2">&quot;Output&quot;</span><span class="p">][</span><span class="s2">&quot;Name&quot;</span><span class="p">]</span><span class="c1">#BaseImageName</span>
+        <span class="n">NodesCat</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">NodeFile</span><span class="p">)</span>
+        <span class="n">NodesCat</span><span class="o">=</span><span class="n">NodesCat</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">recarray</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">NDir</span><span class="o">=</span><span class="n">NodesCat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        
+        <span class="n">ClusterCat</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">NDir</span><span class="p">,),</span><span class="n">dtype</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;Name&#39;</span><span class="p">,</span><span class="s1">&#39;|S200&#39;</span><span class="p">),</span>
+                                                <span class="p">(</span><span class="s1">&#39;ra&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">),(</span><span class="s1">&#39;dec&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">),</span>
+                                                <span class="p">(</span><span class="s1">&#39;l&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">),(</span><span class="s1">&#39;m&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">),</span>
+                                                <span class="p">(</span><span class="s1">&#39;SumI&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">),(</span><span class="s2">&quot;Cluster&quot;</span><span class="p">,</span><span class="nb">int</span><span class="p">)])</span>
+        <span class="n">ClusterCat</span><span class="o">=</span><span class="n">ClusterCat</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">recarray</span><span class="p">)</span>
+        <span class="n">ClusterCat</span><span class="o">.</span><span class="n">l</span><span class="o">=</span><span class="n">NodesCat</span><span class="o">.</span><span class="n">l</span>
+        <span class="n">ClusterCat</span><span class="o">.</span><span class="n">m</span><span class="o">=</span><span class="n">NodesCat</span><span class="o">.</span><span class="n">m</span>
+        <span class="n">ClusterCat</span><span class="o">.</span><span class="n">ra</span><span class="o">=</span><span class="n">NodesCat</span><span class="o">.</span><span class="n">ra</span>
+        <span class="n">ClusterCat</span><span class="o">.</span><span class="n">dec</span><span class="o">=</span><span class="n">NodesCat</span><span class="o">.</span><span class="n">dec</span>
+
+        <span class="n">NN</span><span class="o">=</span><span class="n">ClusterCat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">Cat</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">NN</span><span class="p">,),</span><span class="n">dtype</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;Name&#39;</span><span class="p">,</span><span class="s1">&#39;|S200&#39;</span><span class="p">),(</span><span class="s1">&#39;ra&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">),(</span><span class="s1">&#39;dec&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">),(</span><span class="s1">&#39;Sref&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">),(</span><span class="s1">&#39;I&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">),(</span><span class="s1">&#39;Q&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">),</span>\
+                                  <span class="p">(</span><span class="s1">&#39;U&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">),(</span><span class="s1">&#39;V&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">),(</span><span class="s1">&#39;RefFreq&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">),(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">),(</span><span class="s1">&#39;ESref&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">),</span>\
+                                  <span class="p">(</span><span class="s1">&#39;Ealpha&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">),(</span><span class="s1">&#39;kill&#39;</span><span class="p">,</span><span class="nb">int</span><span class="p">),(</span><span class="s1">&#39;Cluster&#39;</span><span class="p">,</span><span class="nb">int</span><span class="p">),(</span><span class="s1">&#39;Type&#39;</span><span class="p">,</span><span class="nb">int</span><span class="p">),(</span><span class="s1">&#39;Gmin&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">),</span>\
+                                  <span class="p">(</span><span class="s1">&#39;Gmaj&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">),(</span><span class="s1">&#39;Gangle&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">),(</span><span class="s2">&quot;Select&quot;</span><span class="p">,</span><span class="nb">int</span><span class="p">),(</span><span class="s1">&#39;l&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">),(</span><span class="s1">&#39;m&#39;</span><span class="p">,</span><span class="nb">float</span><span class="p">),</span>
+                                  <span class="p">(</span><span class="s2">&quot;Exclude&quot;</span><span class="p">,</span><span class="nb">bool</span><span class="p">)])</span>
+        <span class="n">Cat</span><span class="o">=</span><span class="n">Cat</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">recarray</span><span class="p">)</span>
+        <span class="n">Cat</span><span class="o">.</span><span class="n">RefFreq</span><span class="o">=</span><span class="mf">1.</span>
+        <span class="n">Cat</span><span class="o">.</span><span class="n">ra</span><span class="p">[:]</span><span class="o">=</span><span class="n">ClusterCat</span><span class="o">.</span><span class="n">ra</span>
+        <span class="n">Cat</span><span class="o">.</span><span class="n">dec</span><span class="p">[:]</span><span class="o">=</span><span class="n">ClusterCat</span><span class="o">.</span><span class="n">dec</span>
+        <span class="n">Cat</span><span class="o">.</span><span class="n">I</span><span class="p">[:]</span><span class="o">=</span><span class="n">ClusterCat</span><span class="o">.</span><span class="n">SumI</span><span class="p">[:]</span>
+        <span class="n">Cat</span><span class="o">.</span><span class="n">Cluster</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">NN</span><span class="p">)</span>
+        <span class="n">Cat</span><span class="o">.</span><span class="n">Sref</span><span class="p">[:]</span><span class="o">=</span><span class="n">ClusterCat</span><span class="o">.</span><span class="n">SumI</span><span class="p">[:]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">SourceCat</span><span class="o">=</span><span class="n">Cat</span>
+        
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">DicoImager</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">FacetMachine</span><span class="o">.</span><span class="n">DicoImager</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ClusterCat</span><span class="o">=</span><span class="n">ClusterCat</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ClusterCat</span><span class="o">.</span><span class="n">SumI</span><span class="o">=</span><span class="mf">0.</span>
+
+        <span class="c1"># ind=np.where(self.ClusterCat.SumI!=0)[0]</span>
+        <span class="c1"># self.ClusterCat=self.ClusterCat[ind].copy()</span>
+        <span class="c1"># NFacets=self.ClusterCat.shape[0]</span>
+        <span class="c1"># log.print( &quot;  There are %i non-zero facets&quot;%NFacets)</span>
+
+        <span class="n">NFacets</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">FacetMachine</span><span class="o">.</span><span class="n">DicoImager</span><span class="p">)</span>
+        <span class="n">lFacet</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">NFacets</span><span class="p">,),</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">mFacet</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">lFacet</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">iFacet</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NFacets</span><span class="p">):</span>
+            <span class="n">l</span><span class="p">,</span><span class="n">m</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">FacetMachine</span><span class="o">.</span><span class="n">DicoImager</span><span class="p">[</span><span class="n">iFacet</span><span class="p">][</span><span class="s2">&quot;lmShift&quot;</span><span class="p">]</span>
+            <span class="n">lFacet</span><span class="p">[</span><span class="n">iFacet</span><span class="p">]</span><span class="o">=</span><span class="n">l</span>
+            <span class="n">mFacet</span><span class="p">[</span><span class="n">iFacet</span><span class="p">]</span><span class="o">=</span><span class="n">m</span>
+
+        <span class="n">NDir</span><span class="o">=</span><span class="n">ClusterCat</span><span class="o">.</span><span class="n">l</span><span class="o">.</span><span class="n">size</span>
+        <span class="n">d</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">ClusterCat</span><span class="o">.</span><span class="n">l</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">NDir</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span><span class="o">-</span><span class="n">lFacet</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="n">NFacets</span><span class="p">)))</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span>
+                  <span class="p">(</span><span class="n">ClusterCat</span><span class="o">.</span><span class="n">m</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">NDir</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span><span class="o">-</span><span class="n">mFacet</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="n">NFacets</span><span class="p">)))</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">idDir</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        
+        <span class="k">for</span> <span class="n">iFacet</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NFacets</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">FacetMachine</span><span class="o">.</span><span class="n">DicoImager</span><span class="p">[</span><span class="n">iFacet</span><span class="p">][</span><span class="s2">&quot;iDirJones&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">idDir</span><span class="p">[</span><span class="n">iFacet</span><span class="p">]</span>
+            <span class="c1"># print(iFacet,idDir[iFacet])</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="o">.</span><span class="n">ClusterCat</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ClusterCat</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="o">.</span><span class="n">SourceCat</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">SourceCat</span>
+        
+        <span class="kn">from</span><span class="w"> </span><span class="nn">DDFacet.Other.AsyncProcessPool</span><span class="w"> </span><span class="kn">import</span> <span class="n">APP</span>
+        <span class="n">APP</span><span class="o">.</span><span class="n">startWorkers</span><span class="p">()</span>
+        <span class="c1">#self.VS.CalcWeightsBackground()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FacetMachine</span><span class="o">.</span><span class="n">initCFInBackground</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FacetMachine</span><span class="o">.</span><span class="n">awaitInitCompletion</span><span class="p">()</span>
+
+
+        <span class="c1"># for iFacet in range(NFacets):</span>
+            
+        <span class="c1">#     #self.FacetMachine.SpacialWeigth[iFacet]=NpShared.ToShared(&quot;%sSpacialWeight_%3.3i&quot;%(self.IdSharedMem,iFacet),self.FacetMachine.SpacialWeigth[iFacet])</span>
+        <span class="c1">#     self.FacetMachine.SpacialWeigth[iFacet]=self.FacetMachine._CF[iFacet][&quot;SW&quot;]</span>
+        <span class="c1"># log.print( &quot;  Splitting model image&quot;)</span>
+        <span class="c1"># self.BuildGridsParallel()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FacetMachine</span><span class="o">.</span><span class="n">BuildFacetNormImage</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FacetMachine</span><span class="o">.</span><span class="n">setModelImage</span><span class="p">(</span><span class="n">ModelImage</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FacetMachine</span><span class="o">.</span><span class="n">set_model_grid</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">PrepareGridMachinesMapping</span><span class="p">()</span>
+        <span class="c1">#self.BuildGridsSerial()</span>
+        <span class="c1">#self.BuildGridsParallel()</span>
+
+        <span class="n">NFacets</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ClusterCat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="o">.</span><span class="n">NDir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">NDirs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="o">.</span><span class="n">Dirs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">Dirs</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">print</span><span class="p">(</span> <span class="s2">&quot;  There are </span><span class="si">%i</span><span class="s2"> non-zero directions&quot;</span><span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="o">.</span><span class="n">NDir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="o">.</span><span class="n">ClusterCat</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ClusterCat</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="o">.</span><span class="n">SourceCat</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">SourceCat</span>
+        
+        <span class="c1"># self.SM.SourceCat.I[:]=self.ClusterCat.SumI[:]</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="o">.</span><span class="n">DicoJonesDirToFacet</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">DicoJonesDirToFacet</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="o">.</span><span class="n">GD</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">FacetMachine</span><span class="o">.</span><span class="n">GD</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="o">.</span><span class="n">DicoImager</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">FacetMachine</span><span class="o">.</span><span class="n">DicoImager</span>
+        <span class="c1">#self.SM.GD[&quot;Comp&quot;][&quot;CompDeGridMode&quot;]=0</span>
+        <span class="n">CurrentMS</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">VS</span><span class="o">.</span><span class="n">ListMS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">VS</span><span class="o">.</span><span class="n">iCurrentMS</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="o">.</span><span class="n">rac</span><span class="o">=</span><span class="n">CurrentMS</span><span class="o">.</span><span class="n">rac</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="o">.</span><span class="n">decc</span><span class="o">=</span><span class="n">CurrentMS</span><span class="o">.</span><span class="n">decc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="o">.</span><span class="n">AvailableCorrelationProductsIds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">VS</span><span class="o">.</span><span class="n">StokesConverter</span><span class="o">.</span><span class="n">AvailableCorrelationProductsIds</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="o">.</span><span class="n">RequiredStokesProductsIds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">VS</span><span class="o">.</span><span class="n">StokesConverter</span><span class="o">.</span><span class="n">RequiredStokesProductsIds</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="o">.</span><span class="n">NFreqBands</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">VS</span><span class="o">.</span><span class="n">NFreqBands</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="o">.</span><span class="n">Path</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;cf_dict_path&quot;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">FacetMachine</span><span class="o">.</span><span class="n">_CF</span><span class="o">.</span><span class="n">path</span><span class="p">}</span>
+        <span class="c1">#self.SM.ChanMappingDegrid=self.VS.FreqBandChannelsDegrid[0]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="o">.</span><span class="n">ChanMappingDegrid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">VS</span><span class="o">.</span><span class="n">DicoMSChanMappingDegridding</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="o">.</span><span class="n">_model_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">FacetMachine</span><span class="o">.</span><span class="n">_model_dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="o">.</span><span class="n">MapClusterCatOrigToCut</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">MapClusterCatOrigToCut</span></div>
+
+        
+        <span class="c1"># import pprint</span>
+        <span class="c1"># pprint.pprint(self.DicoJonesDirToFacet)</span>
+
+
+        <span class="c1"># self.SM.IDsShared={}</span>
+        <span class="c1"># self.SM.IDsShared[&quot;IdSharedMem&quot;]=self.FacetMachine.IdSharedMem</span>
+        <span class="c1"># self.SM.IDsShared[&quot;ChunkDataCache&quot;]=&quot;file://&quot; + self.VS.cache.dirname + &quot;/&quot;</span>
+        <span class="c1"># self.SM.IDsShared[&quot;FacetDataCache&quot;]=self.FacetMachine.FacetDataCache</span>
+        <span class="c1"># self.SM.IDsShared[&quot;IdSharedMemData&quot;]=self.FacetMachine.IdSharedMemData</span>
+
+
+<div class="viewcode-block" id="ClassPreparePredict.PrepareGridMachinesMapping">
+<a class="viewcode-back" href="../../../api/killMS.Predict.html#killMS.Predict.ClassImageSM2.ClassPreparePredict.PrepareGridMachinesMapping">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">PrepareGridMachinesMapping</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">True</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        build soldir - gridmachine mapping</span>
+<span class="sd">        read ClusterCat</span>
+<span class="sd">        per clustercat dir, set DicoJonesDirToFacet</span>
+<span class="sd">        read model_dict from self.FacetMachine._model_dict; reload it</span>
+<span class="sd">        per-facet, get iDirJones, sumflux, sumI</span>
+<span class="sd">        if the iFacet sumflux is not zero, tabulate FacetsID and sumflux per jonesdir (tessel)</span>
+<span class="sd">        per-facet, read the grid, set the DicoImager and DIcoJonesDirToFacet</span>
+<span class="sd">        copy ClusterCat, NDirs to build new ones (in case of empty facets within tessels)</span>
+<span class="sd">        this class imports the beam from killMS.Data</span>
+<span class="sd">        read solve threshold from ImageSkyModel. </span>
+<span class="sd">        get apparent flux max per jones-dir.</span>
+<span class="sd">        if this appflux is less than overall max appflux * threshold, remove it.</span>
+<span class="sd">        reset mappings from original clustercat to kept one</span>
+<span class="sd">        reset NDirs etc</span>
+<span class="sd">        return True</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">print</span><span class="p">(</span> <span class="s2">&quot;  Make the solution-directions to gridmachine mapping&quot;</span><span class="p">)</span>
+        <span class="n">ListGrid</span><span class="o">=</span><span class="p">[]</span>
+
+
+        <span class="n">NFacets</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DicoImager</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+        <span class="n">ClusterCat</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ClusterCat</span>
+        <span class="n">DicoJonesDirToFacet</span><span class="o">=</span><span class="p">{}</span>
+        <span class="k">for</span> <span class="n">iDir</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ClusterCat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">DicoJonesDirToFacet</span><span class="p">[</span><span class="n">iDir</span><span class="p">]</span><span class="o">=</span><span class="p">{}</span>
+            <span class="n">DicoJonesDirToFacet</span><span class="p">[</span><span class="n">iDir</span><span class="p">][</span><span class="s2">&quot;FacetsIDs&quot;</span><span class="p">]</span><span class="o">=</span><span class="p">[]</span>
+            <span class="n">DicoJonesDirToFacet</span><span class="p">[</span><span class="n">iDir</span><span class="p">][</span><span class="s2">&quot;SumFlux&quot;</span><span class="p">]</span><span class="o">=</span><span class="mf">0.</span>
+
+        <span class="n">model_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">FacetMachine</span><span class="o">.</span><span class="n">_model_dict</span>
+        <span class="n">model_dict</span><span class="o">.</span><span class="n">reload</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">iFacet</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">FacetMachine</span><span class="o">.</span><span class="n">DicoImager</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">iDirJones</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">FacetMachine</span><span class="o">.</span><span class="n">DicoImager</span><span class="p">[</span><span class="n">iFacet</span><span class="p">][</span><span class="s2">&quot;iDirJones&quot;</span><span class="p">]</span>
+            <span class="n">ThisFacetSumFlux</span><span class="o">=</span><span class="n">model_dict</span><span class="p">[</span><span class="n">iFacet</span><span class="p">][</span><span class="s2">&quot;SumFlux&quot;</span><span class="p">]</span>
+            <span class="n">ClusterCat</span><span class="o">.</span><span class="n">SumI</span><span class="p">[</span><span class="n">iDirJones</span><span class="p">]</span><span class="o">+=</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">ThisFacetSumFlux</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">FacetMachine</span><span class="o">.</span><span class="n">DicoImager</span><span class="p">[</span><span class="n">iFacet</span><span class="p">][</span><span class="s2">&quot;SumFlux&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">ThisFacetSumFlux</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">FacetMachine</span><span class="o">.</span><span class="n">DicoImager</span><span class="p">[</span><span class="n">iFacet</span><span class="p">][</span><span class="s2">&quot;SumFlux&quot;</span><span class="p">]</span><span class="o">!=</span><span class="mf">0.</span><span class="p">:</span>
+                <span class="n">DicoJonesDirToFacet</span><span class="p">[</span><span class="n">iDirJones</span><span class="p">][</span><span class="s2">&quot;FacetsIDs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">iFacet</span><span class="p">)</span>
+                <span class="n">DicoJonesDirToFacet</span><span class="p">[</span><span class="n">iDirJones</span><span class="p">][</span><span class="s2">&quot;SumFlux&quot;</span><span class="p">]</span><span class="o">+=</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">ThisFacetSumFlux</span><span class="p">)</span>
+
+
+
+        <span class="k">for</span> <span class="n">iFacet</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">FacetMachine</span><span class="o">.</span><span class="n">DicoImager</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">Grid</span><span class="o">=</span><span class="n">model_dict</span><span class="p">[</span><span class="n">iFacet</span><span class="p">][</span><span class="s2">&quot;FacetGrid&quot;</span><span class="p">]</span>
+            <span class="n">ListGrid</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Grid</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">DicoImager</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">FacetMachine</span><span class="o">.</span><span class="n">DicoImager</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DicoJonesDirToFacet</span><span class="o">=</span><span class="n">DicoJonesDirToFacet</span>
+        
+        
+        <span class="n">D</span><span class="o">=</span><span class="p">{}</span>
+        <span class="n">iDirNew</span><span class="o">=</span><span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ClusterCatOrig</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ClusterCat</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NDirsOrig</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ClusterCat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">NDirs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ClusterCat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        
+        <span class="kn">from</span><span class="w"> </span><span class="nn">killMS.Data</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClassBeam</span>
+
+        <span class="c1">#self.GD[&quot;Beam&quot;][&quot;BeamModel&quot;]=self.GD[&quot;Beam&quot;][&quot;Model&quot;]</span>
+        <span class="n">Th</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GD</span><span class="p">[</span><span class="s2">&quot;GDkMS&quot;</span><span class="p">][</span><span class="s2">&quot;ImageSkyModel&quot;</span><span class="p">][</span><span class="s2">&quot;ThSolve&quot;</span><span class="p">])</span>
+
+        <span class="n">Keep</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">NDirs</span><span class="p">,),</span><span class="nb">bool</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">Th</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;Compute mean beam for direction removal...&quot;</span><span class="p">)</span>
+            <span class="n">BeamMachine</span><span class="o">=</span><span class="n">ClassBeam</span><span class="o">.</span><span class="n">ClassBeam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">VS</span><span class="o">.</span><span class="n">ListMS</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">MSName</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">GD</span><span class="p">[</span><span class="s2">&quot;GDkMS&quot;</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">SM</span><span class="p">)</span><span class="c1">#,ColName=self.GD[&quot;Data&quot;][&quot;ColName&quot;])</span>
+            <span class="n">AbsMeanBeam</span><span class="o">=</span><span class="n">BeamMachine</span><span class="o">.</span><span class="n">GiveMeanBeam</span><span class="p">(</span><span class="n">NTimes</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+            <span class="n">AbsMeanBeamAnt</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">AbsMeanBeam</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        
+
+            <span class="n">AppFlux</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">DicoJonesDirToFacet</span><span class="p">[</span><span class="n">iDirJones</span><span class="p">][</span><span class="s2">&quot;SumFlux&quot;</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">AbsMeanBeamAnt</span><span class="p">[</span><span class="n">iDirJones</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span> <span class="k">for</span> <span class="n">iDirJones</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">DicoJonesDirToFacet</span><span class="o">.</span><span class="n">keys</span><span class="p">())])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">AppFlux</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">DicoJonesDirToFacet</span><span class="p">[</span><span class="n">iDirJones</span><span class="p">][</span><span class="s2">&quot;SumFlux&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">iDirJones</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">DicoJonesDirToFacet</span><span class="o">.</span><span class="n">keys</span><span class="p">())])</span>
+            
+        <span class="n">MaxAppFlux</span><span class="o">=</span><span class="n">AppFlux</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+        <span class="n">HasRemoved</span><span class="o">=</span><span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">iDirJones</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">DicoJonesDirToFacet</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="c1">#print(self.DicoJonesDirToFacet[iDirJones][&quot;SumFlux&quot;])</span>
+            <span class="c1">#if self.DicoJonesDirToFacet[iDirJones][&quot;SumFlux&quot;]==0:</span>
+            
+            <span class="k">if</span> <span class="n">AppFlux</span><span class="p">[</span><span class="n">iDirJones</span><span class="p">]</span><span class="o">&lt;=</span><span class="n">MaxAppFlux</span><span class="o">*</span><span class="n">Th</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">ModColor</span><span class="o">.</span><span class="n">Str</span><span class="p">(</span><span class="s2">&quot;  Remove Jones direction </span><span class="si">%i</span><span class="s2"> [</span><span class="si">%f</span><span class="s2"> &lt; </span><span class="si">%f</span><span class="s2"> Jy [Th = </span><span class="si">%f</span><span class="s2"> of Max </span><span class="si">%f</span><span class="s2"> Jy]]&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">iDirJones</span><span class="p">,</span><span class="n">AppFlux</span><span class="p">[</span><span class="n">iDirJones</span><span class="p">],</span><span class="n">MaxAppFlux</span><span class="o">*</span><span class="n">Th</span><span class="p">,</span><span class="n">Th</span><span class="p">,</span><span class="n">MaxAppFlux</span><span class="p">)))</span>
+                <span class="n">HasRemoved</span><span class="o">=</span><span class="mi">1</span>
+                <span class="c1">#print(&quot;  !!!!!!!!!!!!!!!!!!!!!!!&quot;)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">D</span><span class="p">[</span><span class="n">iDirNew</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">DicoJonesDirToFacet</span><span class="p">[</span><span class="n">iDirJones</span><span class="p">]</span>
+                <span class="n">iDirNew</span><span class="o">+=</span><span class="mi">1</span>
+                <span class="n">Keep</span><span class="p">[</span><span class="n">iDirJones</span><span class="p">]</span><span class="o">=</span><span class="mi">1</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">HasRemoved</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">ModColor</span><span class="o">.</span><span class="n">Str</span><span class="p">(</span><span class="s2">&quot;All directions have been kept in the solve&quot;</span><span class="p">))</span>
+
+                
+        <span class="c1">#Keep.fill(0)</span>
+        <span class="c1">#Keep[1:5]=1</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">MapClusterCatOrigToCut</span><span class="o">=</span><span class="n">Keep</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">DicoJonesDirToFacet</span><span class="o">=</span><span class="n">D</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ClusterCat</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ClusterCat</span><span class="p">[</span><span class="n">Keep</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+
+        
+        <span class="c1"># self.SourceCat=self.SourceCat[Keep].copy()</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">Dirs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">DicoJonesDirToFacet</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NDirs</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Dirs</span><span class="p">)</span>
+
+        <span class="c1"># NpShared.PackListArray(&quot;%sGrids&quot;%(self.IdSharedMem),ListGrid)</span>
+            
+        <span class="k">return</span> <span class="kc">True</span></div>
+</div>
+
+
+
+      <span class="c1"># def BuildGridsParallel(self):</span>
+      <span class="c1">#   log.print( &quot;  Building the grids&quot;)</span>
+      <span class="c1">#   ListGrid=[]</span>
+
+
+
+      <span class="c1">#   NCPU=self.GD[&quot;Parallel&quot;][&quot;NCPU&quot;]</span>
+
+      <span class="c1">#   NFacets=len(self.DicoImager.keys())</span>
+      <span class="c1">#   work_queue = multiprocessing.Queue()</span>
+      <span class="c1">#   result_queue = multiprocessing.Queue()</span>
+
+      <span class="c1">#   NJobs=NFacets</span>
+      <span class="c1">#   for iFacet in range(NFacets):</span>
+      <span class="c1">#       GM=self.FacetMachine.GiveGM(iFacet)</span>
+            
+      <span class="c1">#       Job={&quot;iFacet&quot;:iFacet,</span>
+      <span class="c1">#            &quot;SharedMemNameSphe&quot;:GM.WTerm.SharedMemNameSphe,</span>
+      <span class="c1">#            &quot;FacetDataCache&quot;:self.FacetMachine.FacetDataCache}</span>
+      <span class="c1">#       work_queue.put(Job)</span>
+
+
+      <span class="c1">#   NormImage=self.FacetMachine.BuildFacetNormImage()#GiveNormImage()</span>
+      <span class="c1">#   _=NpShared.ToShared(&quot;%sNormImage&quot;%self.IdSharedMem,NormImage)</span>
+
+      <span class="c1">#   GM=self.FacetMachine.GiveGM(0)</span>
+        
+
+      <span class="c1">#   argsImToGrid=(GM.GridShape,GM.PaddingInnerCoord,GM.OverS,GM.Padding,GM.dtype)</span>
+        
+      <span class="c1">#   workerlist=[]</span>
+      <span class="c1">#   # FacetMode=&quot;Sharp&quot;</span>
+      <span class="c1">#   FacetMode=&quot;Fader&quot;</span>
+        
+
+
+      <span class="c1">#   for ii in range(NCPU):</span>
+      <span class="c1">#       W=Worker(work_queue, result_queue,argsImToGrid=argsImToGrid,</span>
+      <span class="c1">#                IdSharedMem=self.IdSharedMem,</span>
+      <span class="c1">#                DicoImager=self.FacetMachine.DicoImager,FacetMode=FacetMode,</span>
+      <span class="c1">#                GD=self.GD)#&quot;Fader&quot;)</span>
+      <span class="c1">#       workerlist.append(W)</span>
+      <span class="c1">#       workerlist[ii].start()</span>
+
+
+      <span class="c1">#   pBAR= ProgressBar(&#39;white&#39;, width=50, block=&#39;=&#39;, empty=&#39; &#39;,Title=&quot;Make Grids &quot;, HeaderSize=10,TitleSize=13)</span>
+      <span class="c1">#   pBAR.disable()</span>
+      <span class="c1">#   pBAR.render(0, &#39;%4i/%i&#39; % (0,NFacets))</span>
+      <span class="c1">#   iResult=0</span>
+
+      <span class="c1">#   ClusterCat=self.ClusterCat</span>
+      <span class="c1">#   DicoJonesDirToFacet={}</span>
+      <span class="c1">#   for iDir in range(self.ClusterCat.shape[0]):</span>
+      <span class="c1">#       DicoJonesDirToFacet[iDir]={}</span>
+      <span class="c1">#       DicoJonesDirToFacet[iDir][&quot;FacetsIDs&quot;]=[]</span>
+      <span class="c1">#       DicoJonesDirToFacet[iDir][&quot;SumFlux&quot;]=0.</span>
+
+      <span class="c1">#   while iResult &lt; NJobs:</span>
+      <span class="c1">#       DicoResult=result_queue.get()</span>
+      <span class="c1">#       if DicoResult[&quot;Success&quot;]:</span>
+      <span class="c1">#           iResult+=1</span>
+      <span class="c1">#           iFacet=DicoResult[&quot;iFacet&quot;]</span>
+      <span class="c1">#           iDirJones=self.FacetMachine.DicoImager[iFacet][&quot;iDirJones&quot;]</span>
+      <span class="c1">#           ClusterCat.SumI[iDirJones]+=np.real(DicoResult[&quot;SumFlux&quot;])</span>
+      <span class="c1">#           self.FacetMachine.DicoImager[iFacet][&quot;SumFlux&quot;]=np.real(DicoResult[&quot;SumFlux&quot;])</span>
+      <span class="c1">#           if self.FacetMachine.DicoImager[iFacet][&quot;SumFlux&quot;]!=0.:</span>
+      <span class="c1">#               DicoJonesDirToFacet[iDirJones][&quot;FacetsIDs&quot;].append(iFacet)</span>
+      <span class="c1">#               DicoJonesDirToFacet[iDirJones][&quot;SumFlux&quot;]+=np.real(DicoResult[&quot;SumFlux&quot;])</span>
+                    
+      <span class="c1">#           #ra,dec=self.FacetMachine.DicoImager[iFacet][&quot;RaDec&quot;]</span>
+      <span class="c1">#           #l0,m0=self.FacetMachine.DicoImager[iFacet][&quot;l0m0&quot;]</span>
+      <span class="c1">#           #l,m=self.FacetMachine.DicoImager[iFacet][&quot;lmShift&quot;]</span>
+      <span class="c1">#           #ClusterCat.l[iFacet]=l</span>
+      <span class="c1">#           #ClusterCat.m[iFacet]=m</span>
+
+      <span class="c1">#           #ClusterCat.ra[iFacet]=ra</span>
+      <span class="c1">#           #ClusterCat.dec[iFacet]=dec</span>
+
+      <span class="c1">#       NDone=iResult</span>
+      <span class="c1">#       intPercent=int(100*  NDone / float(NFacets))</span>
+      <span class="c1">#       pBAR.render(intPercent, &#39;%4i/%i&#39; % (NDone,NFacets))</span>
+
+      <span class="c1">#   #pprint.pprint(DicoJonesDirToFacet)</span>
+
+      <span class="c1">#   for ii in range(NCPU):</span>
+      <span class="c1">#       workerlist[ii].shutdown()</span>
+      <span class="c1">#       workerlist[ii].terminate()</span>
+      <span class="c1">#       workerlist[ii].join()</span>
+
+
+
+
+      <span class="c1">#   for iFacet in sorted(self.FacetMachine.DicoImager.keys()):</span>
+      <span class="c1">#       Grid=NpShared.GiveArray(&quot;%sModelGrid.%3.3i&quot;%(self.IdSharedMem,iFacet))</span>
+      <span class="c1">#       ListGrid.append(Grid)</span>
+
+      <span class="c1">#   self.DicoImager=self.FacetMachine.DicoImager</span>
+      <span class="c1">#   #self.ClusterCat=ClusterCat[DelFacet==0].copy()</span>
+      <span class="c1">#   #NFacets=self.ClusterCat.shape[0]</span>
+      <span class="c1">#   #self.ClusterCat.Cluster=np.arange(NFacets)</span>
+      <span class="c1">#   self.DicoJonesDirToFacet=DicoJonesDirToFacet</span>
+        
+        
+      <span class="c1">#   D={}</span>
+      <span class="c1">#   iDirNew=0</span>
+
+      <span class="c1">#   self.ClusterCatOrig=self.ClusterCat.copy()</span>
+      <span class="c1">#   self.NDirsOrig=self.ClusterCat.shape[0]</span>
+
+      <span class="c1">#   self.NDirs=self.ClusterCat.shape[0]</span>
+      <span class="c1">#   Keep=np.zeros((self.NDirs,),bool)</span>
+      <span class="c1">#   for iDirJones in sorted(DicoJonesDirToFacet.keys()):</span>
+      <span class="c1">#       if self.DicoJonesDirToFacet[iDirJones][&quot;SumFlux&quot;]==0:</span>
+      <span class="c1">#           log.print(&quot;  Remove Jones direction %i&quot;%(iDirJones))</span>
+      <span class="c1">#       else:</span>
+      <span class="c1">#           D[iDirNew]=self.DicoJonesDirToFacet[iDirJones]</span>
+      <span class="c1">#           iDirNew+=1</span>
+      <span class="c1">#           Keep[iDirJones]=1</span>
+      <span class="c1">#   self.MapClusterCatOrigToCut=Keep</span>
+
+      <span class="c1">#   self.DicoJonesDirToFacet=D</span>
+      <span class="c1">#   self.ClusterCat=self.ClusterCat[Keep].copy()</span>
+      <span class="c1">#   #self.Dirs=self.ClusterCat.Cluster.tolist()</span>
+      <span class="c1">#   #self.Dirs=[iDir for iDir in DicoJonesDirToFacet.keys() if DicoJonesDirToFacet[iDir][&quot;SumFlux&quot;]!=0.]</span>
+      <span class="c1">#   #self.Dirs=[iDir for iDir in DicoJonesDirToFacet.keys() if DicoJonesDirToFacet[iDir][&quot;SumFlux&quot;]!=0.]</span>
+
+      <span class="c1">#   self.Dirs=self.DicoJonesDirToFacet.keys()</span>
+      <span class="c1">#   self.NDirs=len(self.Dirs)</span>
+        
+      <span class="c1">#   # print self.ClusterCat.ra</span>
+      <span class="c1">#   # print self.DicoJonesDirToFacet</span>
+        
+      <span class="c1">#   # from DDFacet.Other import MyPickle</span>
+      <span class="c1">#   # np.save(&quot;ClusterCat&quot;,self.ClusterCat)</span>
+      <span class="c1">#   # MyPickle.Save(self.DicoJonesDirToFacet,&quot;DicoJonesDirToFacet&quot;)</span>
+      <span class="c1">#   # MyPickle.Save(self.FacetMachine.DicoImager,&quot;DicoImager&quot;)</span>
+
+      <span class="c1">#   # stop</span>
+      <span class="c1">#   NpShared.PackListArray(&quot;%sGrids&quot;%(self.IdSharedMem),ListGrid)</span>
+      <span class="c1">#   NpShared.DelAll(&quot;%sModelFacet&quot;%self.IdSharedMem)</span>
+      <span class="c1">#   NpShared.DelAll(&quot;%sModelGrid&quot;%self.IdSharedMem)</span>
+      <span class="c1">#   return True</span>
+
+
+        
+
+
+
+ 
+<span class="kn">import</span><span class="w"> </span><span class="nn">multiprocessing</span>
+
+<div class="viewcode-block" id="Worker">
+<a class="viewcode-back" href="../../../api/killMS.Predict.html#killMS.Predict.ClassImageSM2.Worker">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Worker</span><span class="p">(</span><span class="n">multiprocessing</span><span class="o">.</span><span class="n">Process</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Initialise class variables, including shared-mem images</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">work_queue</span><span class="p">,</span>
+                 <span class="n">result_queue</span><span class="p">,</span>
+                 <span class="n">argsImToGrid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">IdSharedMem</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">DicoImager</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">FacetMode</span><span class="o">=</span><span class="s2">&quot;Fader&quot;</span><span class="p">,</span><span class="n">GD</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Process</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">work_queue</span> <span class="o">=</span> <span class="n">work_queue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">result_queue</span> <span class="o">=</span> <span class="n">result_queue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kill_received</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exit</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">GD</span><span class="o">=</span><span class="n">GD</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">IdSharedMem</span><span class="o">=</span><span class="n">IdSharedMem</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DicoImager</span><span class="o">=</span><span class="n">DicoImager</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FacetMode</span><span class="o">=</span><span class="n">FacetMode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SharedMemNameSphe</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">Spheroidal&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">IdSharedMem</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ifzfCF</span><span class="o">=</span><span class="n">NpShared</span><span class="o">.</span><span class="n">GiveArray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">SharedMemNameSphe</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ClassImToGrid</span><span class="o">=</span><span class="n">ClassImToGrid</span><span class="p">(</span><span class="o">*</span><span class="n">argsImToGrid</span><span class="p">,</span><span class="n">ifzfCF</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ifzfCF</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Image</span><span class="o">=</span><span class="n">NpShared</span><span class="o">.</span><span class="n">GiveArray</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">ModelImage&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">IdSharedMem</span><span class="p">))</span>
+
+<div class="viewcode-block" id="Worker.shutdown">
+<a class="viewcode-back" href="../../../api/killMS.Predict.html#killMS.Predict.ClassImageSM2.Worker.shutdown">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">shutdown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exit</span><span class="o">.</span><span class="n">set</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Worker.run">
+<a class="viewcode-back" href="../../../api/killMS.Predict.html#killMS.Predict.ClassImageSM2.Worker.run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Parallel run. Read iFacet, FacetDataCache, image.</span>
+<span class="sd">        read SPHe sharedarray</span>
+<span class="sd">        read spatial weights from sharedmem</span>
+<span class="sd">        initialise imtogrid</span>
+<span class="sd">        calc grid, sumflux via im2grid.givemodeltessel</span>
+<span class="sd">        push modelgrid to sharedmem</span>
+<span class="sd">        add success to result_queue</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">kill_received</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">Job</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">work_queue</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">break</span>
+
+
+            <span class="c1"># ModelFacet=NpShared.GiveArray(&quot;%sModelFacet.%3.3i&quot;%(self.IdSharedMem,iFacet))</span>
+            <span class="c1"># Grid=self.ClassImToGrid.setModelIm(ModelFacet)</span>
+            <span class="c1"># _=NpShared.ToShared(&quot;%sModelGrid.%3.3i&quot;%(self.IdSharedMem,iFacet),Grid)</span>
+            <span class="c1"># self.result_queue.put({&quot;Success&quot;:True})</span>
+
+            <span class="n">iFacet</span><span class="o">=</span><span class="n">Job</span><span class="p">[</span><span class="s2">&quot;iFacet&quot;</span><span class="p">]</span>
+            <span class="n">FacetDataCache</span><span class="o">=</span><span class="n">Job</span><span class="p">[</span><span class="s2">&quot;FacetDataCache&quot;</span><span class="p">]</span>
+
+            <span class="n">Image</span><span class="o">=</span><span class="n">NpShared</span><span class="o">.</span><span class="n">GiveArray</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">ModelImage&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">IdSharedMem</span><span class="p">))</span>
+            
+            
+            <span class="c1">#Grid,SumFlux=self.ClassImToGrid.GiveGridFader(Image,self.DicoImager,iFacet,NormImage)</span>
+            <span class="c1">#SharedMemName=&quot;%sSpheroidal.Facet_%3.3i&quot;%(self.IdSharedMem,iFacet)</span>
+            <span class="n">SPhe</span><span class="o">=</span><span class="n">NpShared</span><span class="o">.</span><span class="n">GiveArray</span><span class="p">(</span><span class="n">Job</span><span class="p">[</span><span class="s2">&quot;SharedMemNameSphe&quot;</span><span class="p">])</span>
+            <span class="c1">#print SharedMemName</span>
+
+            <span class="n">SpacialWeight</span><span class="o">=</span><span class="n">NpShared</span><span class="o">.</span><span class="n">GiveArray</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">SpacialWeight.Facet_</span><span class="si">%3.3i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">FacetDataCache</span><span class="p">,</span> <span class="n">iFacet</span><span class="p">))</span>
+            
+            <span class="n">NormImage</span><span class="o">=</span><span class="n">NpShared</span><span class="o">.</span><span class="n">GiveArray</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">NormImage&quot;</span><span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">IdSharedMem</span><span class="p">)</span>
+            
+            <span class="n">Im2Grid</span><span class="o">=</span><span class="n">ClassImToGrid</span><span class="p">(</span><span class="n">OverS</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GD</span><span class="p">[</span><span class="s2">&quot;ImagerCF&quot;</span><span class="p">][</span><span class="s2">&quot;OverS&quot;</span><span class="p">],</span><span class="n">GD</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GD</span><span class="p">)</span>
+            <span class="n">Grid</span><span class="p">,</span><span class="n">SumFlux</span><span class="o">=</span><span class="n">Im2Grid</span><span class="o">.</span><span class="n">GiveModelTessel</span><span class="p">(</span><span class="n">Image</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">DicoImager</span><span class="p">,</span><span class="n">iFacet</span><span class="p">,</span><span class="n">NormImage</span><span class="p">,</span><span class="n">SPhe</span><span class="p">,</span><span class="n">SpacialWeight</span><span class="p">,</span><span class="n">ToGrid</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="c1">#ModelSharedMemName=&quot;%sModelImage.Facet_%3.3i&quot;%(self.IdSharedMem,iFacet)</span>
+            <span class="c1">#NpShared.ToShared(ModelSharedMemName,ModelFacet)</span>
+
+
+
+            <span class="n">_</span><span class="o">=</span><span class="n">NpShared</span><span class="o">.</span><span class="n">ToShared</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">ModelGrid.</span><span class="si">%3.3i</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">IdSharedMem</span><span class="p">,</span><span class="n">iFacet</span><span class="p">),</span><span class="n">Grid</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">result_queue</span><span class="o">.</span><span class="n">put</span><span class="p">({</span><span class="s2">&quot;Success&quot;</span><span class="p">:</span><span class="kc">True</span><span class="p">,</span><span class="s2">&quot;iFacet&quot;</span><span class="p">:</span><span class="n">iFacet</span><span class="p">,</span><span class="s2">&quot;SumFlux&quot;</span><span class="p">:</span><span class="n">SumFlux</span><span class="p">})</span></div>
+</div>
+
+            
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">killMS</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">killMS</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Cyril Tasse.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

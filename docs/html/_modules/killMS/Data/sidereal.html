@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>killMS.Data.sidereal &#8212; killMS 0.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <script src="../../../_static/documentation_options.js?v=01f34227"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for killMS.Data.sidereal</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">absolute_import</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">division</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_function</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">killMS, a package for calibration in radio interferometry.</span>
+<span class="sd">Copyright (C) 2013-2017  Cyril Tasse, l&#39;Observatoire de Paris,</span>
+<span class="sd">SKA South Africa, Rhodes University</span>
+
+<span class="sd">This program is free software; you can redistribute it and/or</span>
+<span class="sd">modify it under the terms of the GNU General Public License</span>
+<span class="sd">as published by the Free Software Foundation; either version 2</span>
+<span class="sd">of the License, or (at your option) any later version.</span>
+
+<span class="sd">This program is distributed in the hope that it will be useful,</span>
+<span class="sd">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="sd">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="sd">GNU General Public License for more details.</span>
+
+<span class="sd">You should have received a copy of the GNU General Public License</span>
+<span class="sd">along with this program; if not, write to the Free Software</span>
+<span class="sd">Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;sidereal.py: A Python module for astronomical calculations.</span>
+
+<span class="sd">  For documentation, see:</span>
+<span class="sd">    http://www.nmt.edu/tcc/help/lang/python/examples/sidereal/ims/</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">ETN: this is an external library. Not documenting it fully.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="c1">#================================================================</span>
+<span class="c1"># Imports</span>
+<span class="c1">#----------------------------------------------------------------</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">math</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
+<span class="c1">#================================================================</span>
+<span class="c1"># Manifest constants</span>
+<span class="c1">#----------------------------------------------------------------</span>
+
+<span class="n">FIRST_GREGORIAN_YEAR</span>  <span class="o">=</span>  <span class="mi">1583</span>
+<span class="n">TWO_PI</span>  <span class="o">=</span>  <span class="mf">2.0</span> <span class="o">*</span> <span class="n">pi</span>
+<span class="n">PI_OVER_12</span>  <span class="o">=</span>  <span class="n">pi</span> <span class="o">/</span> <span class="mf">12.0</span>
+<span class="n">JULIAN_BIAS</span>  <span class="o">=</span>  <span class="mi">2200000</span>    <span class="c1"># 2,200,000</span>
+<span class="n">SIDEREAL_A</span>  <span class="o">=</span>  <span class="mf">0.0657098</span>
+<span class="n">FLOAT_PAT</span>  <span class="o">=</span>  <span class="n">re</span><span class="o">.</span><span class="n">compile</span> <span class="p">(</span>
+    <span class="sa">r</span><span class="s1">&#39;\d+&#39;</span>          <span class="c1"># Matches one or more digits</span>
+    <span class="sa">r</span><span class="s1">&#39;(&#39;</span>            <span class="c1"># Start optional fraction</span>
+      <span class="sa">r</span><span class="s1">&#39;[.]&#39;</span>          <span class="c1"># Matches the decimal point</span>
+      <span class="sa">r</span><span class="s1">&#39;\d+&#39;</span>          <span class="c1"># Matches one or more digits</span>
+    <span class="sa">r</span><span class="s1">&#39;)?&#39;</span> <span class="p">)</span>          <span class="c1"># End optional group</span>
+<span class="n">D_PAT</span>  <span class="o">=</span>  <span class="n">re</span><span class="o">.</span><span class="n">compile</span> <span class="p">(</span> <span class="sa">r</span><span class="s1">&#39;[dD]&#39;</span> <span class="p">)</span>
+<span class="n">M_PAT</span>  <span class="o">=</span>  <span class="n">re</span><span class="o">.</span><span class="n">compile</span> <span class="p">(</span> <span class="sa">r</span><span class="s1">&#39;[mM]&#39;</span> <span class="p">)</span>
+<span class="n">S_PAT</span>  <span class="o">=</span>  <span class="n">re</span><span class="o">.</span><span class="n">compile</span> <span class="p">(</span> <span class="sa">r</span><span class="s1">&#39;[sS]&#39;</span> <span class="p">)</span>
+<span class="n">H_PAT</span>  <span class="o">=</span>  <span class="n">re</span><span class="o">.</span><span class="n">compile</span> <span class="p">(</span> <span class="sa">r</span><span class="s1">&#39;[hH]&#39;</span> <span class="p">)</span>
+<span class="n">NS_PAT</span>  <span class="o">=</span>  <span class="n">re</span><span class="o">.</span><span class="n">compile</span> <span class="p">(</span> <span class="sa">r</span><span class="s1">&#39;[nNsS]&#39;</span> <span class="p">)</span>
+<span class="n">EW_PAT</span>  <span class="o">=</span>  <span class="n">re</span><span class="o">.</span><span class="n">compile</span> <span class="p">(</span> <span class="sa">r</span><span class="s1">&#39;[eEwW]&#39;</span> <span class="p">)</span>
+<span class="c1"># - - -   h o u r s T o R a d i a n s</span>
+
+<div class="viewcode-block" id="hoursToRadians">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.hoursToRadians">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">hoursToRadians</span> <span class="p">(</span> <span class="n">hours</span> <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert hours (15 degrees) to radians.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span>  <span class="n">hours</span> <span class="o">*</span> <span class="n">PI_OVER_12</span></div>
+
+<span class="c1"># - - -   r a d i a n s T o H o u r s</span>
+
+<div class="viewcode-block" id="radiansToHours">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.radiansToHours">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">radiansToHours</span> <span class="p">(</span> <span class="n">radians</span> <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert radians to hours (15 degrees).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span>  <span class="n">radians</span> <span class="o">/</span> <span class="n">PI_OVER_12</span></div>
+
+<span class="c1"># - - -   h o u r A n g l e T o R A</span>
+
+<div class="viewcode-block" id="hourAngleToRA">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.hourAngleToRA">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">hourAngleToRA</span> <span class="p">(</span> <span class="n">h</span><span class="p">,</span> <span class="n">ut</span><span class="p">,</span> <span class="n">eLong</span> <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert hour angle to right ascension.</span>
+
+<span class="sd">      [ (h is an hour angle in radians as a float) and</span>
+<span class="sd">        (ut is a timestamp as a datetime.datetime instance) and</span>
+<span class="sd">        (eLong is an east longitude in radians) -&gt;</span>
+<span class="sd">          return the right ascension in radians corresponding</span>
+<span class="sd">          to that hour angle at that time and location ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#-- 1 --</span>
+    <span class="c1"># [ gst  :=  the Greenwich Sidereal Time equivalent to</span>
+    <span class="c1">#            ut, as a SiderealTime instance ]</span>
+    <span class="n">gst</span>  <span class="o">=</span>  <span class="n">SiderealTime</span><span class="o">.</span><span class="n">fromDatetime</span> <span class="p">(</span> <span class="n">ut</span> <span class="p">)</span>
+    <span class="c1">#-- 2 --</span>
+    <span class="c1"># [ lst  :=  the local time corresponding to gst at</span>
+    <span class="c1">#            longitude eLong ]</span>
+    <span class="n">lst</span>  <span class="o">=</span>  <span class="n">gst</span><span class="o">.</span><span class="n">lst</span> <span class="p">(</span> <span class="n">eLong</span> <span class="p">)</span>
+    <span class="c1">#-- 3 --</span>
+    <span class="c1"># [ alpha  :=  lst - h, normalized to [0,2*pi) ]</span>
+    <span class="n">alpha</span>  <span class="o">=</span>  <span class="p">(</span><span class="n">lst</span><span class="o">.</span><span class="n">radians</span> <span class="o">-</span> <span class="n">h</span><span class="p">)</span> <span class="o">%</span> <span class="n">TWO_PI</span>
+
+    <span class="c1">#-- 4 --</span>
+    <span class="k">return</span> <span class="n">alpha</span></div>
+
+<span class="c1"># - - -   r a T o H o u r A n g l e</span>
+
+<div class="viewcode-block" id="raToHourAngle">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.raToHourAngle">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">raToHourAngle</span> <span class="p">(</span> <span class="n">ra</span><span class="p">,</span> <span class="n">ut</span><span class="p">,</span> <span class="n">eLong</span> <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert right ascension to hour angle.</span>
+
+<span class="sd">      [ (ra is a right ascension in radians as a float) and</span>
+<span class="sd">        (ut is a timestamp as a datetime.datetime instance) and</span>
+<span class="sd">        (eLong is an east longitude in radians) -&gt;</span>
+<span class="sd">          return the hour angle in radians at that time and</span>
+<span class="sd">          location corresponding to that right ascension ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#-- 1 --</span>
+    <span class="c1"># [ gst  :=  the Greenwich Sidereal Time equivalent to</span>
+    <span class="c1">#            ut, as a SiderealTime instance ]</span>
+    <span class="n">gst</span>  <span class="o">=</span>  <span class="n">SiderealTime</span><span class="o">.</span><span class="n">fromDatetime</span> <span class="p">(</span> <span class="n">ut</span> <span class="p">)</span>
+
+    <span class="c1">#-- 2 --</span>
+    <span class="c1"># [ lst  :=  the local time corresponding to gst at</span>
+    <span class="c1">#            longitude eLong ]</span>
+    <span class="n">lst</span>  <span class="o">=</span>  <span class="n">gst</span><span class="o">.</span><span class="n">lst</span> <span class="p">(</span> <span class="n">eLong</span> <span class="p">)</span>
+    <span class="c1">#-- 3 --</span>
+    <span class="c1"># [ h  :=  lst - ra, normalized to [0,2*pi) ]</span>
+    <span class="n">h</span>  <span class="o">=</span>  <span class="p">(</span><span class="n">lst</span><span class="o">.</span><span class="n">radians</span> <span class="o">-</span> <span class="n">ra</span><span class="p">)</span> <span class="o">%</span> <span class="n">TWO_PI</span>
+
+    <span class="c1">#-- 4 --</span>
+    <span class="k">return</span> <span class="n">h</span></div>
+
+<span class="c1"># - - -   d a y N o</span>
+
+<div class="viewcode-block" id="dayNo">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.dayNo">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">dayNo</span> <span class="p">(</span> <span class="n">dt</span> <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the day number within the year.</span>
+
+<span class="sd">      [ dt is a date as a datetime.datetime or datetime.date -&gt;</span>
+<span class="sd">          return the number of days between dt and Dec. 31 of</span>
+<span class="sd">          the preceding year ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#-- 1 --</span>
+    <span class="c1"># [ dateOrd  :=  proleptic Gregorian ordinal of dt</span>
+    <span class="c1">#   jan1Ord  :=  proleptic Gregorian ordinal of January 1</span>
+    <span class="c1">#                of year (dt.year) ]</span>
+    <span class="n">dateOrd</span>  <span class="o">=</span>  <span class="n">dt</span><span class="o">.</span><span class="n">toordinal</span><span class="p">()</span>
+    <span class="n">jan1Ord</span>  <span class="o">=</span>  <span class="n">datetime</span><span class="o">.</span><span class="n">date</span> <span class="p">(</span> <span class="n">dt</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span> <span class="p">)</span><span class="o">.</span><span class="n">toordinal</span><span class="p">()</span>
+
+    <span class="c1">#-- 2 --</span>
+    <span class="k">return</span>  <span class="n">dateOrd</span> <span class="o">-</span> <span class="n">jan1Ord</span> <span class="o">+</span> <span class="mi">1</span></div>
+
+<span class="c1"># - - -   p a r s e D a t e t i m e</span>
+
+<span class="n">T_PATTERN</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span> <span class="p">(</span> <span class="s1">&#39;[tT]&#39;</span> <span class="p">)</span>
+
+<div class="viewcode-block" id="parseDatetime">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.parseDatetime">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parseDatetime</span> <span class="p">(</span> <span class="n">s</span> <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse a date with optional time.</span>
+
+<span class="sd">      [ s is a string -&gt;</span>
+<span class="sd">          if s is a valid date with optional time -&gt;</span>
+<span class="sd">            return that timestamp as a datetime.datetime instance</span>
+<span class="sd">          else -&gt; raise SyntaxError ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#-- 1 --</span>
+    <span class="c1"># [ if s contains &quot;T&quot; or &quot;t&quot; -&gt;</span>
+    <span class="c1">#     rawDate  :=  s up to the first such character</span>
+    <span class="c1">#     rawTime  :=  s from just after the first such</span>
+    <span class="c1">#                  character to the end</span>
+    <span class="c1">#   else -&gt;</span>
+    <span class="c1">#     rawDate  :=  s</span>
+    <span class="c1">#     rawTime  :=  None ]</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">T_PATTERN</span><span class="o">.</span><span class="n">search</span> <span class="p">(</span> <span class="n">s</span> <span class="p">)</span>
+    <span class="k">if</span>  <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">rawDate</span><span class="p">,</span> <span class="n">rawTime</span>  <span class="o">=</span>  <span class="n">s</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rawDate</span>  <span class="o">=</span>  <span class="n">s</span><span class="p">[:</span><span class="n">m</span><span class="o">.</span><span class="n">start</span><span class="p">()]</span>
+        <span class="n">rawTime</span>  <span class="o">=</span>  <span class="n">s</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">end</span><span class="p">():]</span>
+    <span class="c1">#-- 2 --</span>
+    <span class="c1"># [ if rawDate is a valid date -&gt;</span>
+    <span class="c1">#     datePart  :=  rawDate as a datetime.datetime instance</span>
+    <span class="c1">#   else -&gt; raise SyntaxError ]</span>
+    <span class="n">datePart</span>  <span class="o">=</span>  <span class="n">parseDate</span> <span class="p">(</span> <span class="n">rawDate</span> <span class="p">)</span>
+    <span class="c1">#-- 3 --</span>
+    <span class="c1"># [ if rawTime is None -&gt;</span>
+    <span class="c1">#     timePart  :=  00:00 as a datetime.time</span>
+    <span class="c1">#   else if rawTime is valid -&gt;</span>
+    <span class="c1">#     timePart  :=  rawTime as a datetime.time</span>
+    <span class="c1">#   else -&gt; raise SyntaxError ]</span>
+    <span class="k">if</span>  <span class="n">rawTime</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">timePart</span>  <span class="o">=</span>  <span class="n">datetime</span><span class="o">.</span><span class="n">time</span> <span class="p">(</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">timePart</span>  <span class="o">=</span>  <span class="n">parseTime</span> <span class="p">(</span> <span class="n">rawTime</span> <span class="p">)</span>
+    <span class="c1">#-- 4 --</span>
+    <span class="k">return</span>  <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">combine</span> <span class="p">(</span> <span class="n">datePart</span><span class="p">,</span> <span class="n">timePart</span> <span class="p">)</span></div>
+
+<span class="c1"># - - -   p a r s e D a t e</span>
+
+<span class="n">YEAR_FIELD</span>  <span class="o">=</span>  <span class="s2">&quot;Y&quot;</span>
+<span class="n">MONTH_FIELD</span>  <span class="o">=</span>  <span class="s2">&quot;M&quot;</span>
+<span class="n">DAY_FIELD</span>  <span class="o">=</span>  <span class="s2">&quot;D&quot;</span>
+
+<span class="n">dateRe</span>  <span class="o">=</span>  <span class="p">(</span>
+    <span class="sa">r</span><span class="s1">&#39;(&#39;</span>            <span class="c1"># Begin YEAR_FIELD</span>
+      <span class="sa">r</span><span class="s1">&#39;?P&lt;</span><span class="si">%s</span><span class="s1">&gt;&#39;</span>       <span class="c1"># Name this group YEAR_FIELD</span>
+      <span class="sa">r</span><span class="s1">&#39;\d</span><span class="si">{4}</span><span class="s1">&#39;</span>        <span class="c1"># Match exactly four digits</span>
+    <span class="sa">r</span><span class="s1">&#39;)&#39;</span>            <span class="c1"># End YEAR_FIELD</span>
+    <span class="sa">r</span><span class="s1">&#39;\-&#39;</span>           <span class="c1"># Matches one hyphen</span>
+    <span class="sa">r</span><span class="s1">&#39;(&#39;</span>            <span class="c1"># Begin MONTH_FIELD</span>
+      <span class="sa">r</span><span class="s1">&#39;?P&lt;</span><span class="si">%s</span><span class="s1">&gt;&#39;</span>       <span class="c1"># Name this group MONTH_FIELD</span>
+      <span class="sa">r</span><span class="s1">&#39;\d{1,2}&#39;</span>      <span class="c1"># Matches one or two digits</span>
+    <span class="sa">r</span><span class="s1">&#39;)&#39;</span>            <span class="c1"># End MONTH_FIELD</span>
+    <span class="sa">r</span><span class="s1">&#39;\-&#39;</span>           <span class="c1"># Matches &quot;-&quot;</span>
+    <span class="sa">r</span><span class="s1">&#39;(&#39;</span>            <span class="c1"># Begin DAY_FIELD</span>
+      <span class="sa">r</span><span class="s1">&#39;?P&lt;</span><span class="si">%s</span><span class="s1">&gt;&#39;</span>       <span class="c1"># Name this group DAY_FIELD</span>
+      <span class="sa">r</span><span class="s1">&#39;\d{1,2}&#39;</span>      <span class="c1"># Matches one or two digits</span>
+    <span class="sa">r</span><span class="s1">&#39;)&#39;</span>            <span class="c1"># End DAY_FIELD</span>
+    <span class="sa">r</span><span class="s1">&#39;$&#39;</span>            <span class="c1"># Make sure all characters match</span>
+    <span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">YEAR_FIELD</span><span class="p">,</span> <span class="n">MONTH_FIELD</span><span class="p">,</span> <span class="n">DAY_FIELD</span><span class="p">)</span>
+<span class="n">DATE_PAT</span>  <span class="o">=</span>  <span class="n">re</span><span class="o">.</span><span class="n">compile</span> <span class="p">(</span> <span class="n">dateRe</span> <span class="p">)</span>
+
+<div class="viewcode-block" id="parseDate">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.parseDate">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parseDate</span> <span class="p">(</span> <span class="n">s</span> <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate and convert a date in external form.</span>
+
+<span class="sd">      [ s is a string -&gt;</span>
+<span class="sd">          if s is a valid external date string -&gt;</span>
+<span class="sd">            return that date as a datetime.date instance</span>
+<span class="sd">          else -&gt; raise SyntaxError ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#-- 1 --</span>
+    <span class="c1"># [ if DATE_PAT matches s -&gt;</span>
+    <span class="c1">#     m  :=  a match instance describing the match</span>
+    <span class="c1">#   else -&gt; raise SyntaxError ]</span>
+    <span class="n">m</span>  <span class="o">=</span>  <span class="n">DATE_PAT</span><span class="o">.</span><span class="n">match</span> <span class="p">(</span> <span class="n">s</span> <span class="p">)</span>
+    <span class="k">if</span>  <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">SyntaxError</span><span class="p">(</span> <span class="s2">&quot;Date does not have pattern YYYY-DD-MM: &quot;</span>
+                             <span class="s2">&quot;&#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">s</span> <span class="p">)</span>
+    <span class="c1">#-- 2 --</span>
+    <span class="n">year</span>   <span class="o">=</span>  <span class="nb">int</span> <span class="p">(</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span> <span class="p">(</span> <span class="n">YEAR_FIELD</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="n">month</span>  <span class="o">=</span>  <span class="nb">int</span> <span class="p">(</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span> <span class="p">(</span> <span class="n">MONTH_FIELD</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="n">day</span>    <span class="o">=</span>  <span class="nb">int</span> <span class="p">(</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span> <span class="p">(</span> <span class="n">DAY_FIELD</span> <span class="p">)</span> <span class="p">)</span>
+
+    <span class="c1">#-- 3 --</span>
+    <span class="k">return</span>  <span class="n">datetime</span><span class="o">.</span><span class="n">date</span> <span class="p">(</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span> <span class="p">)</span></div>
+
+<span class="c1"># - - -   p a r s e T i m e</span>
+
+<div class="viewcode-block" id="parseTime">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.parseTime">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parseTime</span> <span class="p">(</span> <span class="n">s</span> <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">time</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate and convert a time and optional zone.</span>
+
+<span class="sd">      [ s is a string -&gt;</span>
+<span class="sd">          if s is a valid time with optional zone suffix -&gt;</span>
+<span class="sd">            return that time as a datetime.time</span>
+<span class="sd">          else -&gt; raise SyntaxError ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#-- 1 -</span>
+    <span class="c1"># [ if s starts with FLOAT_PAT -&gt;</span>
+    <span class="c1">#     decHour  :=  matching part of s as a float</span>
+    <span class="c1">#     minuteTail  :=  part s past the match</span>
+    <span class="c1">#   else -&gt; raise SyntaxError ]</span>
+    <span class="n">decHour</span><span class="p">,</span> <span class="n">minuteTail</span>  <span class="o">=</span>  <span class="n">parseFloat</span> <span class="p">(</span> <span class="n">s</span><span class="p">,</span> <span class="s2">&quot;Hour number&quot;</span>  <span class="p">)</span>
+    <span class="c1">#-- 2 --</span>
+    <span class="c1"># [ if minuteTail starts with &quot;:&quot; followed by FLOAT_PAT -&gt;</span>
+    <span class="c1">#     decMinute  :=  part matching FLOAT_PAT as a float</span>
+    <span class="c1">#     secondTail  :=  part of minuteTail after the match</span>
+    <span class="c1">#   else if minuteTail starts with &quot;:&quot; not followed by</span>
+    <span class="c1">#   FLOAT_PAT -&gt;</span>
+    <span class="c1">#     raise SyntaxError</span>
+    <span class="c1">#   else -&gt;</span>
+    <span class="c1">#     decMinute  :=  0.0</span>
+    <span class="c1">#     secondTail  :=  minuteTail ]</span>
+    <span class="k">if</span>  <span class="n">minuteTail</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">):</span>
+        <span class="n">m</span>  <span class="o">=</span>  <span class="n">FLOAT_PAT</span><span class="o">.</span><span class="n">match</span> <span class="p">(</span> <span class="n">minuteTail</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="p">)</span>
+        <span class="k">if</span>  <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">SyntaxError</span><span class="p">(</span> <span class="s2">&quot;Expecting minutes: &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span>
+                                 <span class="n">minuteTail</span> <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">decMinute</span>  <span class="o">=</span>  <span class="nb">float</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">())</span>
+            <span class="n">secondTail</span>  <span class="o">=</span>  <span class="n">minuteTail</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">end</span><span class="p">()</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">decMinute</span>  <span class="o">=</span>  <span class="mf">0.0</span>
+        <span class="n">secondTail</span>  <span class="o">=</span>  <span class="n">minuteTail</span>
+    <span class="c1">#-- 3 --</span>
+    <span class="c1"># [ if secondTail starts with &quot;:&quot; followed by FLOAT_PAT -&gt;</span>
+    <span class="c1">#     decSecond  :=  part matching FLOAT_PAT as a float</span>
+    <span class="c1">#     zoneTail  :=  part of secondTail after the match</span>
+    <span class="c1">#   else if secondTail starts with &quot;:&quot; not followed by</span>
+    <span class="c1">#   FLOAT_PAT -&gt;</span>
+    <span class="c1">#     raise SyntaxError</span>
+    <span class="c1">#   else -&gt;</span>
+    <span class="c1">#     decSecond  :=  0.0</span>
+    <span class="c1">#     zoneTail  :=  secondTail ]</span>
+    <span class="k">if</span>  <span class="n">secondTail</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">):</span>
+        <span class="n">m</span>  <span class="o">=</span>  <span class="n">FLOAT_PAT</span><span class="o">.</span><span class="n">match</span> <span class="p">(</span> <span class="n">secondTail</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="p">)</span>
+        <span class="k">if</span>  <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">SyntaxError</span><span class="p">(</span> <span class="s2">&quot;Expecting seconds: &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span>
+                                 <span class="n">secondTail</span> <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">decSecond</span>  <span class="o">=</span>  <span class="nb">float</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">())</span>
+            <span class="n">zoneTail</span>  <span class="o">=</span>  <span class="n">secondTail</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">end</span><span class="p">()</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">decSecond</span>  <span class="o">=</span>  <span class="mf">0.0</span>
+        <span class="n">zoneTail</span>  <span class="o">=</span>  <span class="n">secondTail</span>
+    <span class="c1">#-- 4 --</span>
+    <span class="c1"># [ if zoneTail is empty -&gt;</span>
+    <span class="c1">#     tz  :=  None</span>
+    <span class="c1">#   else if zoneTail is a valid zone suffix -&gt;</span>
+    <span class="c1">#     tz  :=  that zone information as an instance of a class</span>
+    <span class="c1">#             that inherits from datetime.tzinfo</span>
+    <span class="c1">#   else -&gt; raise SyntaxError ]</span>
+    <span class="k">if</span>  <span class="nb">len</span><span class="p">(</span><span class="n">zoneTail</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">tz</span>  <span class="o">=</span>  <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">tz</span>  <span class="o">=</span>  <span class="n">parseZone</span> <span class="p">(</span> <span class="n">zoneTail</span> <span class="p">)</span>
+    <span class="c1">#-- 5 --</span>
+    <span class="c1"># [ hours  :=  decHour + decMinute/60.0 + decSecond/3600.0 ]</span>
+    <span class="n">hours</span>  <span class="o">=</span>  <span class="n">dmsUnits</span><span class="o">.</span><span class="n">mixToSingle</span> <span class="p">(</span> <span class="p">(</span><span class="n">decHour</span><span class="p">,</span> <span class="n">decMinute</span><span class="p">,</span> <span class="n">decSecond</span><span class="p">)</span> <span class="p">)</span>
+    <span class="c1">#-- 6 --</span>
+    <span class="c1"># [ return a datetime.time representing hours ]</span>
+    <span class="n">hh</span><span class="p">,</span> <span class="n">mm</span><span class="p">,</span> <span class="n">seconds</span> <span class="o">=</span> <span class="n">dmsUnits</span><span class="o">.</span><span class="n">singleToMix</span> <span class="p">(</span> <span class="n">hours</span> <span class="p">)</span>
+    <span class="n">wholeSeconds</span><span class="p">,</span> <span class="n">fracSeconds</span> <span class="o">=</span> <span class="nb">divmod</span> <span class="p">(</span> <span class="n">seconds</span><span class="p">,</span> <span class="mf">1.0</span> <span class="p">)</span>
+    <span class="n">ss</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">wholeSeconds</span><span class="p">)</span>
+    <span class="n">usec</span> <span class="o">=</span> <span class="nb">int</span> <span class="p">(</span> <span class="n">fracSeconds</span> <span class="o">*</span> <span class="mf">1e6</span> <span class="p">)</span>
+    <span class="k">return</span>  <span class="n">datetime</span><span class="o">.</span><span class="n">time</span> <span class="p">(</span> <span class="n">hh</span><span class="p">,</span> <span class="n">mm</span><span class="p">,</span> <span class="n">ss</span><span class="p">,</span> <span class="n">usec</span><span class="p">,</span> <span class="n">tz</span> <span class="p">)</span></div>
+
+<span class="c1"># - - -   p a r s e Z o n e</span>
+
+<div class="viewcode-block" id="parseZone">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.parseZone">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parseZone</span> <span class="p">(</span> <span class="n">s</span> <span class="p">)</span> <span class="p">:</span> <span class="c1"># -&gt; parseFixedZone|zoneCodeMap|SyntaxError :</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate and convert a time zone suffix.</span>
+
+<span class="sd">      [ s is a string -&gt;</span>
+<span class="sd">          if s is a valid time zone suffix -&gt;</span>
+<span class="sd">            return that zone&#39;s information as an instance of</span>
+<span class="sd">            a class that inherits from datetime.tzinfo</span>
+<span class="sd">          else -&gt; raise SyntaxError ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#-- 1 --</span>
+    <span class="c1"># [ if s starts with &quot;+&quot; or &quot;-&quot; and is a valid fixed-offset</span>
+    <span class="c1">#   time zone suffix -&gt;</span>
+    <span class="c1">#     return that zone&#39;s information as a datetime.tzinfo instance</span>
+    <span class="c1">#   else if is starts with &quot;+&quot; or &quot;-&quot; but is not a valid</span>
+    <span class="c1">#   fixed-offset time zone suffix -&gt;</span>
+    <span class="c1">#     raise SyntaxError</span>
+    <span class="c1">#   else -&gt; I ]</span>
+    <span class="k">if</span>  <span class="n">s</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;+&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">s</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">):</span>
+        <span class="k">return</span>  <span class="n">parseFixedZone</span> <span class="p">(</span> <span class="n">s</span> <span class="p">)</span>
+
+    <span class="c1">#-- 2 --</span>
+    <span class="c1"># [ if s.upper() is a key in zoneCodeMap -&gt;</span>
+    <span class="c1">#     return the corresponding value</span>
+    <span class="c1">#   else -&gt; raise SyntaxError ]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">tz</span>  <span class="o">=</span>  <span class="n">zoneCodeMap</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">upper</span><span class="p">()]</span>
+        <span class="k">return</span> <span class="n">tz</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">SyntaxError</span><span class="p">(</span> <span class="s2">&quot;Unknown time zone code: &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">s</span> <span class="p">)</span></div>
+
+<span class="c1"># - - -   p a r s e F i x e d Z o n e</span>
+
+<span class="n">HHMM_PAT</span>  <span class="o">=</span>  <span class="n">re</span><span class="o">.</span><span class="n">compile</span> <span class="p">(</span>
+    <span class="sa">r</span><span class="s1">&#39;\d</span><span class="si">{4}</span><span class="s1">&#39;</span>    <span class="c1"># Matches exactly four digits</span>
+    <span class="sa">r</span><span class="s1">&#39;$&#39;</span> <span class="p">)</span>        <span class="c1"># Be sure everything is matched</span>
+
+<div class="viewcode-block" id="parseFixedZone">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.parseFixedZone">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parseFixedZone</span> <span class="p">(</span> <span class="n">s</span> <span class="p">)</span> <span class="p">:</span> <span class="c1"># -&gt; FixedZone|SyntaxError:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a +hhmm or -hhmm zone suffix.</span>
+
+<span class="sd">      [ s is a string -&gt;</span>
+<span class="sd">          if s is a time zone suffix of the form &quot;+hhmm&quot; or &quot;-hhmm&quot; -&gt;</span>
+<span class="sd">            return that zone information as an instance of a class</span>
+<span class="sd">            that inherits from datetime.tzinfo</span>
+<span class="sd">          else -&gt; raise SyntaxError ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#-- 1 --</span>
+    <span class="k">if</span>  <span class="n">s</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;+&#39;</span><span class="p">):</span>    <span class="n">sign</span>  <span class="o">=</span>  <span class="mi">1</span>
+    <span class="k">elif</span>  <span class="n">s</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">):</span>  <span class="n">sign</span>  <span class="o">=</span>  <span class="o">-</span><span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">SyntaxError</span><span class="p">(</span> <span class="s2">&quot;Expecting zone modifier as </span><span class="si">%s</span><span class="s2">hhmm: &quot;</span>
+                             <span class="s2">&quot;&#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">s</span><span class="p">)</span> <span class="p">)</span>
+    <span class="c1">#-- 2 --</span>
+    <span class="c1"># [ if s[1:] matches HHMM_PAT -&gt;</span>
+    <span class="c1">#     hours  :=  the HH part as an int</span>
+    <span class="c1">#     minutes  :=  the MM part as an int</span>
+    <span class="c1">#   else -&gt; raise SyntaxError ]</span>
+    <span class="n">rawHHMM</span>  <span class="o">=</span>  <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">m</span>  <span class="o">=</span>  <span class="n">HHMM_PAT</span><span class="o">.</span><span class="n">match</span> <span class="p">(</span> <span class="n">rawHHMM</span> <span class="p">)</span>
+    <span class="k">if</span>  <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">SyntaxError</span><span class="p">(</span> <span class="s2">&quot;Expecting zone modifier as </span><span class="si">%s</span><span class="s2">HHMM: &quot;</span>
+                             <span class="s2">&quot;&#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">s</span><span class="p">)</span> <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">hours</span>  <span class="o">=</span>  <span class="nb">int</span> <span class="p">(</span> <span class="n">rawHHMM</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="p">)</span>
+        <span class="n">minutes</span>  <span class="o">=</span>  <span class="nb">int</span> <span class="p">(</span> <span class="n">rawHHMM</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span> <span class="p">)</span>
+
+    <span class="c1">#-- 3 --</span>
+    <span class="k">return</span>  <span class="n">FixedZone</span> <span class="p">(</span> <span class="n">sign</span><span class="o">*</span><span class="n">hours</span><span class="p">,</span> <span class="n">sign</span><span class="o">*</span><span class="n">minutes</span><span class="p">,</span> <span class="n">s</span> <span class="p">)</span></div>
+
+
+<span class="c1"># - - - - -   c l a s s   F i x e d Z o n e</span>
+
+<span class="n">DELTA_ZERO</span>  <span class="o">=</span>  <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">DELTA_HOUR</span>  <span class="o">=</span>  <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FixedZone">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.FixedZone">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FixedZone</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">tzinfo</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a time zone with a fixed offset east of UTC.</span>
+
+<span class="sd">      Exports:</span>
+<span class="sd">        FixedZone ( hours, minutes, name ):</span>
+<span class="sd">          [ (hours is a signed offset in hours as an int) and</span>
+<span class="sd">            (minutes is a signed offset in minutes as an int) -&gt;</span>
+<span class="sd">              return a new FixedZone instance representing</span>
+<span class="sd">              those offsets east of UTC ]</span>
+<span class="sd">      State/Invariants:</span>
+<span class="sd">        .__offset:</span>
+<span class="sd">          [ a datetime.timedelta representing self&#39;s offset</span>
+<span class="sd">            east of UTC ]</span>
+<span class="sd">        .__name:</span>
+<span class="sd">          [ as passed to the constructor&#39;s name argument ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">hh</span><span class="p">,</span> <span class="n">mm</span><span class="p">,</span> <span class="n">name</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor for FixedZone.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__offset</span>  <span class="o">=</span>  <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span> <span class="p">(</span> <span class="n">hours</span><span class="o">=</span><span class="n">hh</span><span class="p">,</span> <span class="n">minutes</span><span class="o">=</span><span class="n">mm</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__name</span>  <span class="o">=</span>  <span class="n">name</span>
+<div class="viewcode-block" id="FixedZone.utcoffset">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.FixedZone.utcoffset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">utcoffset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span> <span class="p">:</span> <span class="c1"># -&gt; datetime.timedelt:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return self&#39;s offset east of UTC.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span>  <span class="bp">self</span><span class="o">.</span><span class="n">__offset</span></div>
+
+<div class="viewcode-block" id="FixedZone.tzname">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.FixedZone.tzname">[docs]</a>
+    <span class="k">def</span><span class="w">  </span><span class="nf">tzname</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return self&#39;s name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span>  <span class="bp">self</span><span class="o">.</span><span class="n">__name</span></div>
+
+<div class="viewcode-block" id="FixedZone.dst">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.FixedZone.dst">[docs]</a>
+    <span class="k">def</span><span class="w">  </span><span class="nf">dst</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return self&#39;s daylight time offset.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span>  <span class="n">DELTA_ZERO</span></div>
+</div>
+
+<div class="viewcode-block" id="firstSundayOnOrAfter">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.firstSundayOnOrAfter">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">firstSundayOnOrAfter</span> <span class="p">(</span> <span class="n">dt</span> <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Find the first Sunday on or after a given date.</span>
+
+<span class="sd">      [ dt is a datetime.date -&gt;</span>
+<span class="sd">          return a datetime.date representing the first Sunday</span>
+<span class="sd">          on or after dt ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">daysToGo</span>  <span class="o">=</span>  <span class="n">dt</span><span class="o">.</span><span class="n">weekday</span><span class="p">()</span>
+    <span class="k">if</span>  <span class="n">daysToGo</span><span class="p">:</span>
+        <span class="n">dt</span>  <span class="o">+=</span>  <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span> <span class="p">(</span> <span class="n">daysToGo</span> <span class="p">)</span>
+    <span class="k">return</span> <span class="n">dt</span></div>
+
+
+<span class="c1"># - - - - -   c l a s s   U S T i m e Z o n e</span>
+
+<div class="viewcode-block" id="USTimeZone">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.USTimeZone">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">USTimeZone</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">tzinfo</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a U.S. time zone, with automatic daylight time.</span>
+
+<span class="sd">      Exports:</span>
+<span class="sd">        USTimeZone ( hh, mm, name, stdName, dstName ):</span>
+<span class="sd">          [ (hh is an offset east of UTC in hours) and</span>
+<span class="sd">            (mm is an offset east of UTC in minutes) and</span>
+<span class="sd">            (name is the composite zone name) and</span>
+<span class="sd">            (stdName is the non-DST name) and</span>
+<span class="sd">            (dstName is the DST name) -&gt;</span>
+<span class="sd">              return a new USTimeZone instance with those values ]</span>
+
+<span class="sd">      State/Invariants:</span>
+<span class="sd">        .__offset:</span>
+<span class="sd">          [ self&#39;s offset east of UTC as a datetime.timedelta ]</span>
+<span class="sd">        .__name:      [ as passed to constructor&#39;s name ]</span>
+<span class="sd">        .__stdName:   [ as passed to constructor&#39;s stdName ]</span>
+<span class="sd">        .__dstName:   [ as passed to constructor&#39;s dstName ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">DST_START_OLD</span>  <span class="o">=</span>  <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span> <span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span> <span class="p">)</span>
+    <span class="n">DST_END_OLD</span>  <span class="o">=</span>  <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span> <span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">2</span> <span class="p">)</span>
+    <span class="n">DST_START_2007</span>  <span class="o">=</span>  <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span> <span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">2</span> <span class="p">)</span>
+    <span class="n">DST_END_2007</span>  <span class="o">=</span>  <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span> <span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span> <span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">hh</span><span class="p">,</span> <span class="n">mm</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">stdName</span><span class="p">,</span> <span class="n">dstName</span> <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__offset</span>   <span class="o">=</span>  <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span> <span class="p">(</span> <span class="n">hours</span><span class="o">=</span><span class="n">hh</span><span class="p">,</span> <span class="n">minutes</span><span class="o">=</span><span class="n">mm</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__name</span>     <span class="o">=</span>  <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__stdName</span>  <span class="o">=</span>  <span class="n">stdName</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dstname</span>  <span class="o">=</span>  <span class="n">dstName</span>
+<div class="viewcode-block" id="USTimeZone.tzname">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.USTimeZone.tzname">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tzname</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
+        <span class="k">if</span>  <span class="bp">self</span><span class="o">.</span><span class="n">dst</span><span class="p">(</span><span class="n">dt</span><span class="p">):</span>   <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dstName</span>
+        <span class="k">else</span><span class="p">:</span>               <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__stdName</span></div>
+
+<div class="viewcode-block" id="USTimeZone.utcoffset">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.USTimeZone.utcoffset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">utcoffset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__offset</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">dst</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="USTimeZone.dst">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.USTimeZone.dst">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dst</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the current DST offset.</span>
+
+<span class="sd">          [ dt is a datetime.date -&gt;</span>
+<span class="sd">              if  daylight time is in effect in self&#39;s zone on</span>
+<span class="sd">              date dt -&gt;</span>
+<span class="sd">                return +1 hour as a datetime.timedelta</span>
+<span class="sd">              else -&gt;</span>
+<span class="sd">                return 0 as a datetime.delta ]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#-- 1 --</span>
+        <span class="c1"># [ dtStart  :=  Sunday when DST starts in year dt.year</span>
+        <span class="c1">#   dtEnd    :=  Sunday when DST ends in year dt.year ]</span>
+        <span class="k">if</span>  <span class="n">dt</span><span class="o">.</span><span class="n">year</span> <span class="o">&gt;=</span> <span class="mi">2007</span><span class="p">:</span>
+            <span class="n">startDate</span>  <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">DST_START_2007</span><span class="o">.</span><span class="n">replace</span> <span class="p">(</span> <span class="n">year</span><span class="o">=</span><span class="n">dt</span><span class="o">.</span><span class="n">year</span> <span class="p">)</span>
+            <span class="n">endDate</span>  <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">DST_END_2007</span><span class="o">.</span><span class="n">replace</span> <span class="p">(</span> <span class="n">year</span><span class="o">=</span><span class="n">dt</span><span class="o">.</span><span class="n">year</span> <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">startDate</span>  <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">DST_START_OLD</span><span class="o">.</span><span class="n">replace</span> <span class="p">(</span> <span class="n">year</span><span class="o">=</span><span class="n">dt</span><span class="o">.</span><span class="n">year</span> <span class="p">)</span>
+            <span class="n">endDate</span>  <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">DST_END_OLD</span><span class="o">.</span><span class="n">replace</span> <span class="p">(</span> <span class="n">year</span><span class="o">=</span><span class="n">dt</span><span class="o">.</span><span class="n">year</span> <span class="p">)</span>
+        <span class="n">dtStart</span>  <span class="o">=</span>  <span class="n">firstSundayOnOrAfter</span> <span class="p">(</span> <span class="n">startDate</span> <span class="p">)</span>
+        <span class="n">dtEnd</span>    <span class="o">=</span>  <span class="n">firstSundayOnOrAfter</span> <span class="p">(</span> <span class="n">endDate</span> <span class="p">)</span>
+        <span class="c1">#-- 2 --</span>
+        <span class="c1"># [ naiveDate  :=  dt with its tzinfo member set to None ]</span>
+        <span class="n">naiveDate</span>  <span class="o">=</span>  <span class="n">dt</span><span class="o">.</span><span class="n">replace</span> <span class="p">(</span> <span class="n">tzinfo</span><span class="o">=</span><span class="kc">None</span> <span class="p">)</span>
+        <span class="c1">#-- 3 --</span>
+        <span class="c1"># [ if naiveDate is in the interval (dtStart, dtEnd) -&gt;</span>
+        <span class="c1">#     return DELTA_HOUR</span>
+        <span class="c1">#   else -&gt;</span>
+        <span class="c1">#     return DELTA_ZERO ]</span>
+        <span class="k">if</span>  <span class="n">dtStart</span> <span class="o">&lt;=</span> <span class="n">naiveDate</span> <span class="o">&lt;</span> <span class="n">dtEnd</span><span class="p">:</span>
+            <span class="k">return</span>  <span class="n">DELTA_HOUR</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span>  <span class="n">DELTA_ZERO</span></div>
+</div>
+
+<span class="n">utcZone</span>  <span class="o">=</span>  <span class="n">FixedZone</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;UTC&quot;</span><span class="p">)</span>
+
+<span class="n">estZone</span>  <span class="o">=</span>  <span class="n">FixedZone</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;EST&quot;</span><span class="p">)</span>
+<span class="n">edtZone</span>  <span class="o">=</span>  <span class="n">FixedZone</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;EDT&quot;</span><span class="p">)</span>
+<span class="n">etZone</span>   <span class="o">=</span>  <span class="n">USTimeZone</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;ET&quot;</span><span class="p">,</span> <span class="s2">&quot;EST&quot;</span><span class="p">,</span> <span class="s2">&quot;EDT&quot;</span><span class="p">)</span>
+
+<span class="n">cstZone</span>  <span class="o">=</span>  <span class="n">FixedZone</span><span class="p">(</span><span class="o">-</span><span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;CST&quot;</span><span class="p">)</span>
+<span class="n">cdtZone</span>  <span class="o">=</span>  <span class="n">FixedZone</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;CDT&quot;</span><span class="p">)</span>
+<span class="n">ctZone</span>   <span class="o">=</span>  <span class="n">USTimeZone</span><span class="p">(</span><span class="o">-</span><span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;CT&quot;</span><span class="p">,</span> <span class="s2">&quot;CST&quot;</span><span class="p">,</span> <span class="s2">&quot;CDT&quot;</span><span class="p">)</span>
+
+<span class="n">mstZone</span>  <span class="o">=</span>  <span class="n">FixedZone</span><span class="p">(</span><span class="o">-</span><span class="mi">7</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;MST&quot;</span><span class="p">)</span>
+<span class="n">mdtZone</span>  <span class="o">=</span>  <span class="n">FixedZone</span><span class="p">(</span><span class="o">-</span><span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;MDT&quot;</span><span class="p">)</span>
+<span class="n">mtZone</span>   <span class="o">=</span>  <span class="n">USTimeZone</span><span class="p">(</span><span class="o">-</span><span class="mi">7</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;MT&quot;</span><span class="p">,</span> <span class="s2">&quot;MST&quot;</span><span class="p">,</span> <span class="s2">&quot;MDT&quot;</span><span class="p">)</span>
+
+<span class="n">pstZone</span>  <span class="o">=</span>  <span class="n">FixedZone</span><span class="p">(</span><span class="o">-</span><span class="mi">8</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;PST&quot;</span><span class="p">)</span>
+<span class="n">pdtZone</span>  <span class="o">=</span>  <span class="n">FixedZone</span><span class="p">(</span><span class="o">-</span><span class="mi">7</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;PDT&quot;</span><span class="p">)</span>
+<span class="n">ptZone</span>   <span class="o">=</span>  <span class="n">USTimeZone</span><span class="p">(</span><span class="o">-</span><span class="mi">8</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;PT&quot;</span><span class="p">,</span> <span class="s2">&quot;PST&quot;</span><span class="p">,</span> <span class="s2">&quot;PDT&quot;</span><span class="p">)</span>
+
+<span class="n">zoneCodeMap</span>  <span class="o">=</span>  <span class="p">{</span>
+    <span class="s2">&quot;UTC&quot;</span><span class="p">:</span> <span class="n">utcZone</span><span class="p">,</span>
+    <span class="s2">&quot;EST&quot;</span><span class="p">:</span> <span class="n">estZone</span><span class="p">,</span>    <span class="s2">&quot;EDT&quot;</span><span class="p">:</span> <span class="n">edtZone</span><span class="p">,</span>    <span class="s2">&quot;ET&quot;</span><span class="p">:</span>  <span class="n">etZone</span><span class="p">,</span>
+    <span class="s2">&quot;CST&quot;</span><span class="p">:</span> <span class="n">cstZone</span><span class="p">,</span>    <span class="s2">&quot;CDT&quot;</span><span class="p">:</span> <span class="n">cdtZone</span><span class="p">,</span>    <span class="s2">&quot;CT&quot;</span><span class="p">:</span>  <span class="n">ctZone</span><span class="p">,</span>
+    <span class="s2">&quot;MST&quot;</span><span class="p">:</span> <span class="n">mstZone</span><span class="p">,</span>    <span class="s2">&quot;MDT&quot;</span><span class="p">:</span> <span class="n">mdtZone</span><span class="p">,</span>    <span class="s2">&quot;MT&quot;</span><span class="p">:</span>  <span class="n">mtZone</span><span class="p">,</span>
+    <span class="s2">&quot;PST&quot;</span><span class="p">:</span> <span class="n">pstZone</span><span class="p">,</span>    <span class="s2">&quot;PDT&quot;</span><span class="p">:</span> <span class="n">pdtZone</span><span class="p">,</span>    <span class="s2">&quot;PT&quot;</span><span class="p">:</span>  <span class="n">ptZone</span> <span class="p">}</span>
+<span class="c1"># - - -   p a r s e A n g l e</span>
+
+<div class="viewcode-block" id="parseAngle">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.parseAngle">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parseAngle</span> <span class="p">(</span> <span class="n">s</span> <span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate and convert an external angle.</span>
+
+<span class="sd">      [ s is a string -&gt;</span>
+<span class="sd">          if s is a valid external angle -&gt;</span>
+<span class="sd">            return s in radians</span>
+<span class="sd">          else -&gt; raise SyntaxError ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#-- 1 --</span>
+    <span class="n">minute</span>  <span class="o">=</span>  <span class="n">second</span>  <span class="o">=</span>  <span class="mf">0.0</span>
+    <span class="c1">#-- 2 --</span>
+    <span class="c1"># [ if s starts with a float followed by &#39;d&#39; or &#39;D&#39; -&gt;</span>
+    <span class="c1">#     degree    :=  that float as type float</span>
+    <span class="c1">#     minTail  :=  s after that float and suffix</span>
+    <span class="c1">#   else -&gt; raise SyntaxError ]</span>
+    <span class="n">degree</span><span class="p">,</span> <span class="n">minTail</span>  <span class="o">=</span>  <span class="n">parseFloatSuffix</span> <span class="p">(</span> <span class="n">s</span><span class="p">,</span> <span class="n">D_PAT</span><span class="p">,</span>
+                          <span class="s2">&quot;Degrees followed by &#39;d&#39;&quot;</span> <span class="p">)</span>
+
+    <span class="c1">#-- 3 --</span>
+    <span class="c1"># [ if minTail is empty -&gt; I</span>
+    <span class="c1">#   else if minTail has the form &quot;(float)m&quot; -&gt;</span>
+    <span class="c1">#     minute  :=  that (float)</span>
+    <span class="c1">#   else if minTail has the form &quot;(float)m(float)s&quot; -&gt;</span>
+    <span class="c1">#     minute  :=  the first (float)</span>
+    <span class="c1">#     second  :=  the second (float)</span>
+    <span class="c1">#   else -&gt; raise SyntaxError ]</span>
+    <span class="k">if</span>  <span class="nb">len</span><span class="p">(</span><span class="n">minTail</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1">#-- 3.1 --</span>
+        <span class="c1"># [ if minTail starts with a float followed by &#39;m&#39; or &#39;M&#39; -&gt;</span>
+        <span class="c1">#     minute  :=  that float as type float</span>
+        <span class="c1">#     secTail  :=  minTail after all that</span>
+        <span class="c1">#   else -&gt; raise SyntaxError ]</span>
+        <span class="n">minute</span><span class="p">,</span> <span class="n">secTail</span>  <span class="o">=</span>  <span class="n">parseFloatSuffix</span> <span class="p">(</span> <span class="n">minTail</span><span class="p">,</span> <span class="n">M_PAT</span><span class="p">,</span>
+                                <span class="s2">&quot;Minutes followed by &#39;m&#39;&quot;</span> <span class="p">)</span>
+
+        <span class="c1">#-- 3.2 --</span>
+        <span class="c1"># [ if secTail is empty -&gt; I</span>
+        <span class="c1">#   else if secTail starts with a float followed by</span>
+        <span class="c1">#   &#39;s&#39; or &#39;S&#39; -&gt;</span>
+        <span class="c1">#     second  :=  that float as type float</span>
+        <span class="c1">#     checkTail  :=  secTail after all that</span>
+        <span class="c1">#   else -&gt; raise SyntaxError ]</span>
+        <span class="k">if</span>  <span class="nb">len</span><span class="p">(</span><span class="n">secTail</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">second</span><span class="p">,</span> <span class="n">checkTail</span>  <span class="o">=</span>  <span class="n">parseFloatSuffix</span> <span class="p">(</span> <span class="n">secTail</span><span class="p">,</span>
+                <span class="n">S_PAT</span><span class="p">,</span> <span class="s2">&quot;Seconds followed by &#39;s&#39;&quot;</span> <span class="p">)</span>
+            <span class="k">if</span>  <span class="nb">len</span><span class="p">(</span><span class="n">checkTail</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">SyntaxError</span><span class="p">(</span> <span class="s2">&quot;Unidentifiable angle parts: &quot;</span>
+                                     <span class="s2">&quot;&#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">checkTail</span> <span class="p">)</span>
+    <span class="c1">#-- 4 --</span>
+    <span class="c1"># [ return the angle (degree, minute, second) in radians ]</span>
+    <span class="n">angleDegrees</span>  <span class="o">=</span>  <span class="n">dmsUnits</span><span class="o">.</span><span class="n">mixToSingle</span> <span class="p">(</span> <span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="n">minute</span><span class="p">,</span> <span class="n">second</span><span class="p">)</span> <span class="p">)</span>
+    <span class="k">return</span>  <span class="n">radians</span> <span class="p">(</span> <span class="n">angleDegrees</span> <span class="p">)</span></div>
+
+<span class="c1"># - - -   p a r s e F l o a t S u f f i x</span>
+
+<div class="viewcode-block" id="parseFloatSuffix">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.parseFloatSuffix">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parseFloatSuffix</span> <span class="p">(</span> <span class="n">s</span><span class="p">,</span> <span class="n">codeRe</span><span class="p">,</span> <span class="n">message</span> <span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse a float followed by a letter code.</span>
+
+<span class="sd">      [ (s is a string) and</span>
+<span class="sd">        (codeRe is a compiled regular expression) and</span>
+<span class="sd">        (message is a string describing what is expected) -&gt;</span>
+<span class="sd">          if  s starts with a float, followed by code (using </span>
+<span class="sd">          case-insensitive comparison) -&gt;</span>
+<span class="sd">            return (x, tail) where x is that float as type float</span>
+<span class="sd">            and tail is the part of s after the float and code</span>
+<span class="sd">          else -&gt; raise SyntaxError, &quot;Expecting (message)&quot; ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#-- 1 --</span>
+    <span class="c1"># [ if  s starts with a float -&gt;</span>
+    <span class="c1">#     x  :=  that float as type float</span>
+    <span class="c1">#     codeTail  :=  the part of s after that float</span>
+    <span class="c1">#   else -&gt; raise SyntaxError, &quot;Expecting (message)&quot; ]</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">codeTail</span>  <span class="o">=</span>  <span class="n">parseFloat</span> <span class="p">(</span> <span class="n">s</span><span class="p">,</span> <span class="n">message</span> <span class="p">)</span>
+
+    <span class="c1">#-- 2 --</span>
+    <span class="c1"># [ if codeTail starts with code (case-insensitive) -&gt;</span>
+    <span class="c1">#     return (x, the part of codeTail after the match)</span>
+    <span class="c1">#   else -&gt; raise SyntaxError ]</span>
+    <span class="n">discard</span><span class="p">,</span> <span class="n">tail</span>  <span class="o">=</span>  <span class="n">parseRe</span> <span class="p">(</span> <span class="n">codeTail</span><span class="p">,</span> <span class="n">codeRe</span><span class="p">,</span> <span class="n">message</span> <span class="p">)</span>
+
+    <span class="c1">#-- 3 --</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">tail</span><span class="p">)</span></div>
+
+<span class="c1"># - - -   p a r s e F l o a t</span>
+
+<div class="viewcode-block" id="parseFloat">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.parseFloat">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parseFloat</span> <span class="p">(</span> <span class="n">s</span><span class="p">,</span> <span class="n">message</span> <span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse a floating-point number at the front of s.</span>
+
+<span class="sd">      [ (s is a string) and</span>
+<span class="sd">        (message is a string describing what is expected) -&gt;</span>
+<span class="sd">          if s begins with a floating-point number -&gt;</span>
+<span class="sd">            return (x, tail) where x is the number as type float</span>
+<span class="sd">            and tail is the part of s after the match</span>
+<span class="sd">          else -&gt; raise SyntaxError, &quot;Expecting (message)&quot; ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#-- 1 --</span>
+    <span class="c1"># [ if the front of s matches FLOAT_PAT -&gt;</span>
+    <span class="c1">#     m  :=  a Match object describing the match</span>
+    <span class="c1">#   else -&gt; raise SyntaxError ]</span>
+    <span class="n">rawFloat</span><span class="p">,</span> <span class="n">tail</span>  <span class="o">=</span>  <span class="n">parseRe</span> <span class="p">(</span> <span class="n">s</span><span class="p">,</span> <span class="n">FLOAT_PAT</span><span class="p">,</span> <span class="n">message</span> <span class="p">)</span>
+
+    <span class="c1">#-- 2 --</span>
+    <span class="k">return</span>  <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">rawFloat</span><span class="p">),</span> <span class="n">tail</span><span class="p">)</span></div>
+
+<span class="c1"># - - -   p a r s e R e</span>
+
+<div class="viewcode-block" id="parseRe">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.parseRe">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parseRe</span> <span class="p">(</span> <span class="n">s</span><span class="p">,</span> <span class="n">regex</span><span class="p">,</span> <span class="n">message</span> <span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse a regular expression at the head of a string.</span>
+
+<span class="sd">      [ (s is a string) and</span>
+<span class="sd">        (regex is a compiled regular expression) and</span>
+<span class="sd">        (message is a string describing what is expected) -&gt;</span>
+<span class="sd">          if  s starts with a string that matches regex -&gt;</span>
+<span class="sd">            return (head, tail) where head is the part of s</span>
+<span class="sd">            that matched and tail is the rest</span>
+<span class="sd">          else -&gt;</span>
+<span class="sd">            raise SyntaxError, &quot;Expecting (message)&quot; ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1">#-- 1 --</span>
+    <span class="c1"># [ if the head of s matches regex -&gt;</span>
+    <span class="c1">#     m  :=  a match object describing the matching part</span>
+    <span class="c1">#   else -&gt; raise SyntaxError, &quot;Expecting (message)&quot; ]</span>
+    <span class="n">m</span>  <span class="o">=</span>  <span class="n">regex</span><span class="o">.</span><span class="n">match</span> <span class="p">(</span> <span class="n">s</span> <span class="p">)</span>
+    <span class="k">if</span>  <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">SyntaxError</span><span class="p">(</span><span class="s2">&quot;Expecting </span><span class="si">%s</span><span class="s2">: &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span>
+    <span class="c1">#-- 2 --</span>
+    <span class="c1"># [ return (matched text from s, text from s after match) ]</span>
+    <span class="n">head</span>  <span class="o">=</span>  <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">()</span>
+    <span class="n">tail</span>  <span class="o">=</span>  <span class="n">s</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">end</span><span class="p">():]</span>
+    <span class="k">return</span>  <span class="p">(</span><span class="n">head</span><span class="p">,</span> <span class="n">tail</span><span class="p">)</span></div>
+
+<span class="c1"># - - -   p a r s e L a t</span>
+
+<div class="viewcode-block" id="parseLat">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.parseLat">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parseLat</span> <span class="p">(</span> <span class="n">s</span> <span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate and convert an external latitude.</span>
+
+<span class="sd">      [ s is a nonempty string -&gt;</span>
+<span class="sd">          if s is a valid external latitude -&gt;</span>
+<span class="sd">            return that latitude in radians</span>
+<span class="sd">          else -&gt; raise SyntaxError ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#-- 1 --</span>
+    <span class="c1"># [ last  :=  last character of s</span>
+    <span class="c1">#   rawAngle  :=  s up to the last character ]</span>
+    <span class="n">last</span>  <span class="o">=</span>  <span class="n">s</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">rawAngle</span>  <span class="o">=</span>  <span class="n">s</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1">#-- 2 --</span>
+    <span class="c1"># [ if last matches NS_PAT -&gt;</span>
+    <span class="c1">#     nsFlag  :=  last, lowercased</span>
+    <span class="c1">#   else -&gt; raise SyntaxError ]</span>
+    <span class="n">m</span>  <span class="o">=</span>  <span class="n">NS_PAT</span><span class="o">.</span><span class="n">match</span> <span class="p">(</span> <span class="n">last</span> <span class="p">)</span>
+    <span class="k">if</span>  <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">SyntaxError</span><span class="p">(</span> <span class="s2">&quot;Latitude &#39;</span><span class="si">%s</span><span class="s2">&#39; does not end with &#39;n&#39; &quot;</span>
+                             <span class="s2">&quot;or &#39;s&#39;.&quot;</span> <span class="o">%</span> <span class="n">s</span> <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nsFlag</span>  <span class="o">=</span>  <span class="n">last</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="c1">#-- 3 --</span>
+    <span class="c1"># [ if rawAngle is a valid angle -&gt;</span>
+    <span class="c1">#     absAngle  :=  that angle in radians</span>
+    <span class="c1">#   else -&gt; raise SyntaxError ]</span>
+    <span class="n">absAngle</span>  <span class="o">=</span>  <span class="n">parseAngle</span> <span class="p">(</span> <span class="n">rawAngle</span> <span class="p">)</span>
+    <span class="c1">#-- 4 --</span>
+    <span class="k">if</span>  <span class="n">nsFlag</span> <span class="o">==</span> <span class="s1">&#39;s&#39;</span><span class="p">:</span>  <span class="n">angle</span>  <span class="o">=</span>  <span class="o">-</span> <span class="n">absAngle</span>
+    <span class="k">else</span><span class="p">:</span>               <span class="n">angle</span>  <span class="o">=</span>  <span class="n">absAngle</span>
+
+    <span class="c1">#-- 5 --</span>
+    <span class="k">return</span> <span class="n">angle</span></div>
+
+<span class="c1"># - - -   p a r s e L o n</span>
+
+<div class="viewcode-block" id="parseLon">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.parseLon">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parseLon</span> <span class="p">(</span> <span class="n">s</span> <span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate and convert an external longitude.</span>
+
+<span class="sd">      [ s is a nonempty string -&gt;</span>
+<span class="sd">          if s is a valid external longitude -&gt;</span>
+<span class="sd">            return that longitude in radians</span>
+<span class="sd">          else -&gt; raise SyntaxError ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#-- 1 --</span>
+    <span class="c1"># [ last  :=  last character of s</span>
+    <span class="c1">#   rawAngle  :=  s up to the last character ]</span>
+    <span class="n">last</span>  <span class="o">=</span>  <span class="n">s</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">rawAngle</span>  <span class="o">=</span>  <span class="n">s</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1">#-- 2 --</span>
+    <span class="c1"># [ if EW_PAT matches last -&gt;</span>
+    <span class="c1">#     ewFlag  :=  last, lowercased</span>
+    <span class="c1">#   else -&gt; raise SyntaxError ]</span>
+    <span class="n">m</span>  <span class="o">=</span>  <span class="n">EW_PAT</span><span class="o">.</span><span class="n">match</span> <span class="p">(</span> <span class="n">last</span> <span class="p">)</span>
+    <span class="k">if</span>  <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">SyntaxError</span><span class="p">(</span> <span class="s2">&quot;Longitude &#39;</span><span class="si">%s</span><span class="s2">&#39; does not end with &quot;</span>
+                             <span class="s2">&quot;&#39;e&#39; or &#39;w&#39;.&quot;</span> <span class="o">%</span> <span class="n">s</span> <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ewFlag</span>  <span class="o">=</span>  <span class="n">last</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="c1">#-- 3 --</span>
+    <span class="c1"># [ if rawAngle is a valid angle -&gt;</span>
+    <span class="c1">#     absAngle  :=  that angle in radians</span>
+    <span class="c1">#   else -&gt; raise SyntaxError ]</span>
+    <span class="n">absAngle</span>  <span class="o">=</span>  <span class="n">parseAngle</span> <span class="p">(</span> <span class="n">rawAngle</span> <span class="p">)</span>
+    <span class="c1">#-- 4 --</span>
+    <span class="k">if</span>  <span class="n">ewFlag</span> <span class="o">==</span> <span class="s1">&#39;w&#39;</span><span class="p">:</span>   <span class="n">angle</span>  <span class="o">=</span>  <span class="n">TWO_PI</span> <span class="o">-</span> <span class="n">absAngle</span>
+    <span class="k">else</span><span class="p">:</span>                <span class="n">angle</span>  <span class="o">=</span>  <span class="n">absAngle</span>
+
+    <span class="c1">#-- 5 --</span>
+    <span class="k">return</span>  <span class="n">angle</span></div>
+
+<span class="c1"># - - -   p a r s e H o u r s</span>
+
+<div class="viewcode-block" id="parseHours">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.parseHours">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parseHours</span> <span class="p">(</span> <span class="n">s</span> <span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate and convert a quantity in hours.</span>
+
+<span class="sd">      [ s is a non-empty string -&gt;</span>
+<span class="sd">          if s is a valid mixed hours expression -&gt;</span>
+<span class="sd">            return the value of s as decimal hours</span>
+<span class="sd">          else -&gt; raise SyntaxError ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#-- 1 --</span>
+    <span class="n">minute</span>  <span class="o">=</span>  <span class="n">second</span>  <span class="o">=</span>  <span class="mf">0.0</span>
+
+    <span class="c1">#-- 2 --</span>
+    <span class="c1"># [ if s starts with a float followed by &#39;h&#39; or &#39;H&#39; -&gt;</span>
+    <span class="c1">#     hour  :=  that float as type float</span>
+    <span class="c1">#     minTail  :=  s after that float and suffix</span>
+    <span class="c1">#   else -&gt; raise SyntaxError ]</span>
+    <span class="n">hour</span><span class="p">,</span> <span class="n">minTail</span>  <span class="o">=</span>  <span class="n">parseFloatSuffix</span> <span class="p">(</span> <span class="n">s</span><span class="p">,</span> <span class="n">H_PAT</span><span class="p">,</span>
+                          <span class="s2">&quot;Hours followed by &#39;h&#39;&quot;</span> <span class="p">)</span>
+
+    <span class="c1">#-- 3 --</span>
+    <span class="c1"># [ if minTail is empty -&gt; I</span>
+    <span class="c1">#   else if minTail has the form &quot;(float)m&quot; -&gt;</span>
+    <span class="c1">#     minute  :=  that (float)</span>
+    <span class="c1">#   else if minTail has the form &quot;(float)m(float)s&quot; -&gt;</span>
+    <span class="c1">#     minute  :=  the first (float)</span>
+    <span class="c1">#     second  :=  the second (float)</span>
+    <span class="c1">#   else -&gt; raise SyntaxError ]</span>
+    <span class="k">if</span>  <span class="nb">len</span><span class="p">(</span><span class="n">minTail</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1">#-- 3.1 --</span>
+        <span class="c1"># [ if minTail starts with a float followed by &#39;m&#39; or &#39;M&#39; -&gt;</span>
+        <span class="c1">#     minute  :=  that float as type float</span>
+        <span class="c1">#     secTail  :=  minTail after all that</span>
+        <span class="c1">#   else -&gt; raise SyntaxError ]</span>
+        <span class="n">minute</span><span class="p">,</span> <span class="n">secTail</span>  <span class="o">=</span>  <span class="n">parseFloatSuffix</span> <span class="p">(</span> <span class="n">minTail</span><span class="p">,</span> <span class="n">M_PAT</span><span class="p">,</span>
+                                <span class="s2">&quot;Minutes followed by &#39;m&#39;&quot;</span> <span class="p">)</span>
+
+        <span class="c1">#-- 3.2 --</span>
+        <span class="c1"># [ if secTail is empty -&gt; I</span>
+        <span class="c1">#   else if secTail starts with a float followed by</span>
+        <span class="c1">#   &#39;s&#39; or &#39;S&#39; -&gt;</span>
+        <span class="c1">#     second  :=  that float as type float</span>
+        <span class="c1">#     checkTail  :=  secTail after all that</span>
+        <span class="c1">#   else -&gt; raise SyntaxError ]</span>
+        <span class="k">if</span>  <span class="nb">len</span><span class="p">(</span><span class="n">secTail</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">second</span><span class="p">,</span> <span class="n">checkTail</span>  <span class="o">=</span>  <span class="n">parseFloatSuffix</span> <span class="p">(</span> <span class="n">secTail</span><span class="p">,</span>
+                <span class="n">S_PAT</span><span class="p">,</span> <span class="s2">&quot;Seconds followed by &#39;s&#39;&quot;</span> <span class="p">)</span>
+            <span class="k">if</span>  <span class="nb">len</span><span class="p">(</span><span class="n">checkTail</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">SyntaxError</span><span class="p">(</span> <span class="s2">&quot;Unidentifiable angle parts: &quot;</span>
+                                     <span class="s2">&quot;&#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">checkTail</span> <span class="p">)</span>
+    <span class="c1">#-- 4 --</span>
+    <span class="c1"># [ return the quantity (hour, minute, second) in hours ]</span>
+    <span class="n">result</span>  <span class="o">=</span>  <span class="n">dmsUnits</span><span class="o">.</span><span class="n">mixToSingle</span> <span class="p">(</span> <span class="p">(</span><span class="n">hour</span><span class="p">,</span> <span class="n">minute</span><span class="p">,</span> <span class="n">second</span><span class="p">)</span> <span class="p">)</span>
+    <span class="k">return</span>  <span class="n">result</span></div>
+
+
+<span class="c1"># - - - - -   c l a s s   M i x e d U n i t s</span>
+
+<div class="viewcode-block" id="MixedUnits">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.MixedUnits">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MixedUnits</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a system with mixed units, e.g., hours/minutes/seconds</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="c1"># - - -   M i x e d U n i t s . _ _ i n i t _ _</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">factors</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">factors</span>  <span class="o">=</span>  <span class="n">factors</span>
+<span class="c1"># - - -   M i x e d U n i t s . m i x T o S i n g l e</span>
+
+<div class="viewcode-block" id="MixedUnits.mixToSingle">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.MixedUnits.mixToSingle">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mixToSingle</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">coeffs</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert mixed units to a single value.</span>
+
+<span class="sd">          [ coeffs is a sequence of numbers not longer than</span>
+<span class="sd">            len(self.factors)+1 -&gt;</span>
+<span class="sd">              return the equivalent single value in self&#39;s system ]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#-- 1 --</span>
+        <span class="n">total</span>  <span class="o">=</span>  <span class="mf">0.0</span>
+
+        <span class="c1">#-- 2 --</span>
+        <span class="c1"># [ if  len(coeffs) &lt;= len(self.factors)+1 -&gt;</span>
+        <span class="c1">#     coeffList  :=  a copy of coeffs, right-padded to length</span>
+        <span class="c1">#         len(self.factors)+1 with zeroes if necessary ]</span>
+        <span class="n">coeffList</span>  <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">__pad</span> <span class="p">(</span> <span class="n">coeffs</span> <span class="p">)</span>
+        <span class="c1">#-- 3 --</span>
+        <span class="c1"># [ total  +:=  (coeffList[-1] * </span>
+        <span class="c1">#        (product of all elements of self.factors)) +</span>
+        <span class="c1">#       (coeffList[-2] *</span>
+        <span class="c1">#        (product of all elements of self.factors[:-1])) +</span>
+        <span class="c1">#       (coeffList[-3] *</span>
+        <span class="c1">#        (product of all elements of self.factors[:-2]))</span>
+        <span class="c1">#        ... ]</span>
+        <span class="k">for</span>  <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span> <span class="p">(</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">factors</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">total</span>  <span class="o">+=</span>  <span class="n">coeffList</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">total</span>  <span class="o">/=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">factors</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="c1">#-- 4 --</span>
+        <span class="n">total</span>  <span class="o">+=</span>  <span class="n">coeffList</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1">#-- 5 --</span>
+        <span class="k">return</span> <span class="n">total</span></div>
+
+<span class="c1"># - - -   M i x e d U n i t s . _ _ p a d</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__pad</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">coeffs</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pad coefficient lists to standard length.</span>
+
+<span class="sd">          [ coeffs is a sequence of numbers -&gt;</span>
+<span class="sd">              if  len(coeffs) &gt; len(self.factors)+1 -&gt;</span>
+<span class="sd">                raise ValueError</span>
+<span class="sd">              else -&gt;</span>
+<span class="sd">                return a list containing the elements of coeff,</span>
+<span class="sd">                plus additional zeroes on the right if necessary</span>
+<span class="sd">                so that the result has length len(self.factors)+1 ]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#-- 1 --</span>
+        <span class="c1"># [ stdLen  :=  1 + len(self.factors)</span>
+        <span class="c1">#   shortage  :=  1 + len(self.factors) - len(coeffs)</span>
+        <span class="c1">#   result  :=  a copy of coeffs as a list ]</span>
+        <span class="n">stdLen</span>  <span class="o">=</span>  <span class="mi">1</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">factors</span><span class="p">)</span>
+        <span class="n">shortage</span>  <span class="o">=</span>  <span class="n">stdLen</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">coeffs</span><span class="p">)</span>
+        <span class="n">result</span>  <span class="o">=</span>  <span class="nb">list</span><span class="p">(</span><span class="n">coeffs</span><span class="p">)</span>
+
+        <span class="c1">#-- 2 --</span>
+        <span class="c1"># [ if shortage &lt; 0 -&gt;</span>
+        <span class="c1">#     raise ValueError</span>
+        <span class="c1">#   else -&gt;</span>
+        <span class="c1">#     result  :=  result + (a list of shortage zeroes) ]</span>
+        <span class="k">if</span>  <span class="n">shortage</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span> <span class="s2">&quot;Value </span><span class="si">%s</span><span class="s2"> has too many elements; &quot;</span>
+                <span class="s2">&quot;max is </span><span class="si">%d</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">stdLen</span><span class="p">)</span> <span class="p">)</span>
+        <span class="k">elif</span>  <span class="n">shortage</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">result</span>  <span class="o">+=</span>  <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="n">shortage</span>
+
+        <span class="c1">#-- 3 --</span>
+        <span class="k">return</span> <span class="n">result</span>
+<span class="c1"># - - -   M i x e d U n i t s . s i n g l e T o M i x</span>
+
+<div class="viewcode-block" id="MixedUnits.singleToMix">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.MixedUnits.singleToMix">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">singleToMix</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">value</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert to mixed units.</span>
+
+<span class="sd">          [ value is a float -&gt;</span>
+<span class="sd">              return value as a sequence of coefficients in</span>
+<span class="sd">              self&#39;s system ]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#-- 1 --</span>
+        <span class="c1"># [ whole  :=  whole part of value</span>
+        <span class="c1">#   frac  :=  fractional part of value ]</span>
+        <span class="n">whole</span><span class="p">,</span> <span class="n">frac</span>  <span class="o">=</span>  <span class="nb">divmod</span> <span class="p">(</span> <span class="n">value</span><span class="p">,</span> <span class="mf">1.0</span> <span class="p">)</span>
+        <span class="n">result</span>  <span class="o">=</span>  <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">whole</span><span class="p">)]</span>
+        <span class="c1">#-- 2 --</span>
+        <span class="c1"># [ result  :=  result with integral parts of value</span>
+        <span class="c1">#               in self&#39;s system appended ]</span>
+        <span class="k">for</span>  <span class="n">factorx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">factors</span><span class="p">)):</span>
+            <span class="n">frac</span>  <span class="o">*=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">factors</span><span class="p">[</span><span class="n">factorx</span><span class="p">]</span>
+            <span class="n">whole</span><span class="p">,</span> <span class="n">frac</span>  <span class="o">=</span>  <span class="nb">divmod</span> <span class="p">(</span> <span class="n">frac</span><span class="p">,</span> <span class="mf">1.0</span> <span class="p">)</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span> <span class="p">(</span> <span class="nb">int</span><span class="p">(</span><span class="n">whole</span><span class="p">)</span> <span class="p">)</span>
+        <span class="c1">#-- 3 --</span>
+        <span class="c1"># [ result  :=  result with frac added to its last element ]</span>
+        <span class="n">result</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>  <span class="o">+=</span>  <span class="n">frac</span>
+
+        <span class="c1">#-- 4 --</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<span class="c1"># - - -   M i x e d U n i t s . f o r m a t</span>
+
+<div class="viewcode-block" id="MixedUnits.format">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.MixedUnits.format">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">format</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">coeffs</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">lz</span><span class="o">=</span><span class="kc">False</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format mixed units.</span>
+
+<span class="sd">          [ (coeffs is a sequence of numbers as returned by</span>
+<span class="sd">            MixedUnits.singleToMix()) and</span>
+<span class="sd">            (decimals is a nonnegative integer) and</span>
+<span class="sd">            (lz is a bool) -&gt;</span>
+<span class="sd">              return a list of strings corresponding to the values</span>
+<span class="sd">              of coeffs, with all the values but the last formatted</span>
+<span class="sd">              as integers, all values zero padded iff lz is true,</span>
+<span class="sd">              and the last value with (decimals) digits after the</span>
+<span class="sd">              decimal point ]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#-- 1 --</span>
+        <span class="n">coeffList</span>  <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">__pad</span> <span class="p">(</span> <span class="n">coeffs</span> <span class="p">)</span>
+
+        <span class="c1">#-- 2 --</span>
+        <span class="c1"># [ result  :=  the values from coeffList[:-1] formatted</span>
+        <span class="c1">#               as integers ]</span>
+        <span class="k">if</span>  <span class="n">lz</span><span class="p">:</span>  <span class="n">fmt</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%02d</span><span class="s2">&quot;</span>
+        <span class="k">else</span><span class="p">:</span>    <span class="n">fmt</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">&quot;</span>
+        <span class="n">result</span>  <span class="o">=</span>  <span class="p">[</span> <span class="n">fmt</span> <span class="o">%</span> <span class="n">x</span>
+                     <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">coeffList</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="p">]</span>
+        <span class="c1">#-- 2 --</span>
+        <span class="c1"># [ whole  :=  whole part of coeffList[-1]</span>
+        <span class="c1">#   frac   :=  fractional part of coeffList[-1]</span>
+        <span class="c1">#   fuzz   :=  0.5 * (10 ** (-decimals) ]</span>
+        <span class="n">whole</span><span class="p">,</span> <span class="n">frac</span>  <span class="o">=</span>  <span class="nb">divmod</span> <span class="p">(</span> <span class="nb">float</span><span class="p">(</span><span class="n">coeffList</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="mf">1.0</span> <span class="p">)</span>
+        <span class="n">fuzz</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="mf">10.0</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="n">decimals</span><span class="p">))</span>
+        <span class="c1">#-- 3 --</span>
+        <span class="c1"># [ if  frac &gt;= (1-fuzz) -&gt;</span>
+        <span class="c1">#     result  +:=  [whole+frac-fuzz], formatted with</span>
+        <span class="c1">#                  (decimals) digits after the decimal</span>
+        <span class="c1">#   else -&gt;</span>
+        <span class="c1">#     result  +=   coeffList[-1], formatted with (decimals)</span>
+        <span class="c1">#                  digits after the decimal ]</span>
+        <span class="k">if</span>  <span class="n">frac</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mf">1.0</span><span class="o">-</span><span class="n">fuzz</span><span class="p">):</span>
+            <span class="n">corrected</span>  <span class="o">=</span>  <span class="n">whole</span> <span class="o">+</span> <span class="n">frac</span> <span class="o">-</span> <span class="n">fuzz</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">corrected</span>  <span class="o">=</span>  <span class="n">coeffList</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1">#-- 4 --</span>
+        <span class="c1"># [ if lz -&gt;</span>
+        <span class="c1">#     s  :=  corrected, formatted with 2 digits of left-zero</span>
+        <span class="c1">#            padding and (decimals) precision</span>
+        <span class="c1">#   else -&gt;</span>
+        <span class="c1">#     s  :=  corrected, formatted with (decimals) precision ]</span>
+        <span class="k">if</span>  <span class="n">lz</span><span class="p">:</span>
+            <span class="k">if</span>  <span class="n">decimals</span><span class="p">:</span>  <span class="n">n</span> <span class="o">=</span> <span class="n">decimals</span><span class="o">+</span><span class="mi">3</span>
+            <span class="k">else</span><span class="p">:</span>          <span class="n">n</span> <span class="o">=</span> <span class="n">decimals</span><span class="o">+</span><span class="mi">2</span>
+
+            <span class="n">s</span>  <span class="o">=</span>  <span class="s2">&quot;</span><span class="si">%0*.*f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">decimals</span><span class="p">,</span> <span class="n">corrected</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">s</span>  <span class="o">=</span>  <span class="s2">&quot;</span><span class="si">%.*f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">decimals</span><span class="p">,</span> <span class="n">corrected</span><span class="p">)</span>
+              
+        <span class="c1">#-- 5 --</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">append</span> <span class="p">(</span> <span class="n">s</span> <span class="p">)</span>
+
+        <span class="c1">#-- 6 --</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+</div>
+
+<span class="n">dmsUnits</span> <span class="o">=</span> <span class="n">MixedUnits</span> <span class="p">(</span> <span class="p">(</span><span class="mi">60</span><span class="p">,</span> <span class="mi">60</span><span class="p">)</span> <span class="p">)</span>
+
+<span class="c1"># - - - - -   c l a s s   L a t L o n</span>
+
+<div class="viewcode-block" id="LatLon">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.LatLon">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LatLon</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a latitude+longitude.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="c1"># - - -  L a t L o n . _ _ i n i t _ _</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor for LatLon.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lat</span>  <span class="o">=</span>  <span class="n">lat</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lon</span>  <span class="o">=</span>  <span class="n">lon</span> <span class="o">%</span> <span class="n">TWO_PI</span>
+<span class="c1"># - - -   L a t L o n . _ _ s t r _ _</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return self as a string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#-- 1 --</span>
+        <span class="k">if</span>  <span class="bp">self</span><span class="o">.</span><span class="n">lon</span> <span class="o">&gt;=</span> <span class="n">pi</span><span class="p">:</span>
+            <span class="n">e_w</span>  <span class="o">=</span>  <span class="s2">&quot;W&quot;</span>
+            <span class="n">lonDeg</span>  <span class="o">=</span>  <span class="n">degrees</span> <span class="p">(</span> <span class="n">TWO_PI</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">lon</span> <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">e_w</span>  <span class="o">=</span>  <span class="s2">&quot;E&quot;</span>
+            <span class="n">lonDeg</span>  <span class="o">=</span>  <span class="n">degrees</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">lon</span> <span class="p">)</span>
+
+        <span class="c1">#-- 2 --</span>
+        <span class="k">if</span>  <span class="bp">self</span><span class="o">.</span><span class="n">lat</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">n_s</span>  <span class="o">=</span>  <span class="s2">&quot;S&quot;</span>
+            <span class="n">latDeg</span>  <span class="o">=</span>  <span class="n">degrees</span> <span class="p">(</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">lat</span> <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">n_s</span>  <span class="o">=</span>  <span class="s2">&quot;N&quot;</span>
+            <span class="n">latDeg</span>  <span class="o">=</span>  <span class="n">degrees</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">lat</span> <span class="p">)</span>
+        <span class="c1">#-- 3 --</span>
+        <span class="c1"># [ latList  :=  three formatted values of latDeg in</span>
+        <span class="c1">#                degrees/minutes/seconds</span>
+        <span class="c1">#   lonList  :=  three formatted values of lonDeg similarly ]</span>
+        <span class="n">latList</span>  <span class="o">=</span>  <span class="n">dmsUnits</span><span class="o">.</span><span class="n">format</span> <span class="p">(</span> <span class="n">dmsUnits</span><span class="o">.</span><span class="n">singleToMix</span><span class="p">(</span><span class="n">latDeg</span><span class="p">),</span> <span class="mi">1</span> <span class="p">)</span>
+        <span class="n">lonList</span>  <span class="o">=</span>  <span class="n">dmsUnits</span><span class="o">.</span><span class="n">format</span> <span class="p">(</span> <span class="n">dmsUnits</span><span class="o">.</span><span class="n">singleToMix</span><span class="p">(</span><span class="n">lonDeg</span><span class="p">),</span> <span class="mi">1</span> <span class="p">)</span>
+
+        <span class="c1">#-- 4 --</span>
+        <span class="k">return</span> <span class="p">(</span> <span class="s1">&#39;[</span><span class="si">%s</span><span class="s1">d </span><span class="si">%s</span><span class="se">\&#39;</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&quot; </span><span class="si">%s</span><span class="s1"> Lat  </span><span class="si">%s</span><span class="s1">d </span><span class="si">%s</span><span class="se">\&#39;</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&quot; </span><span class="si">%s</span><span class="s1"> Lon]&#39;</span> <span class="o">%</span>
+                 <span class="p">(</span><span class="n">latList</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">latList</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">latList</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">n_s</span><span class="p">,</span>
+                  <span class="n">lonList</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">lonList</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">lonList</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">e_w</span><span class="p">)</span> <span class="p">)</span></div>
+
+
+<span class="c1"># - - - - -   c l a s s   J u l i a n D a t e</span>
+
+<div class="viewcode-block" id="JulianDate">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.JulianDate">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">JulianDate</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class to represent Julian-date timestamps.</span>
+
+<span class="sd">      State/Invariants:</span>
+<span class="sd">        .f:  [ (Julian date as a float) - JULIAN_BIAS ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="c1"># - - -   J u l i a n D a t e . _ _ i n i t _ _</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="mf">0.0</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor for JulianDate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">j</span>  <span class="o">=</span>  <span class="n">j</span> <span class="o">-</span> <span class="n">JULIAN_BIAS</span> <span class="o">+</span> <span class="n">f</span>
+<span class="c1"># - - -   J u l i a n D a t e . _ _ f l o a t _ _</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__float__</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert self to a float.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span>  <span class="bp">self</span><span class="o">.</span><span class="n">j</span> <span class="o">+</span> <span class="n">JULIAN_BIAS</span>
+<span class="c1"># - - -   J u l i a n D a t e . d a t e t i m e</span>
+
+<div class="viewcode-block" id="JulianDate.datetime">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.JulianDate.datetime">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">datetime</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert to a standard Python datetime object in UT.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#-- 1 --</span>
+        <span class="c1"># [ i  :=  int(self.j + 0.5)</span>
+        <span class="c1">#   f  :=  (self.j + 0.5) % 1.0 ]</span>
+        <span class="n">i</span><span class="p">,</span> <span class="n">f</span>  <span class="o">=</span>  <span class="nb">divmod</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span> <span class="p">)</span>
+        <span class="n">i</span>  <span class="o">+=</span>  <span class="n">JULIAN_BIAS</span>
+        <span class="c1">#-- 2 --</span>
+        <span class="k">if</span>  <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">2299160</span><span class="p">:</span>
+            <span class="n">a</span>  <span class="o">=</span>  <span class="nb">int</span><span class="p">((</span><span class="n">i</span><span class="o">-</span><span class="mf">1867216.25</span><span class="p">)</span><span class="o">/</span><span class="mf">36524.25</span><span class="p">)</span>
+            <span class="n">b</span>  <span class="o">=</span>  <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">a</span> <span class="o">-</span> <span class="nb">int</span> <span class="p">(</span> <span class="n">a</span> <span class="o">/</span> <span class="mf">4.0</span> <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">b</span>  <span class="o">=</span>  <span class="n">i</span>
+        <span class="c1">#-- 3 --</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">b</span> <span class="o">+</span> <span class="mi">1524</span>
+        <span class="c1">#-- 4 --</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">c</span><span class="o">-</span><span class="mf">122.1</span><span class="p">)</span><span class="o">/</span><span class="mf">365.25</span><span class="p">)</span>
+        <span class="c1">#-- 5 --</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">365.25</span><span class="o">*</span><span class="n">d</span><span class="p">)</span>
+        <span class="c1">#-- 6 --</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">c</span><span class="o">-</span><span class="n">e</span><span class="p">)</span><span class="o">/</span><span class="mf">30.6001</span><span class="p">)</span>
+        <span class="c1">#-- 7 --</span>
+        <span class="n">dayFrac</span> <span class="o">=</span> <span class="n">c</span> <span class="o">-</span> <span class="n">e</span> <span class="o">+</span> <span class="n">f</span> <span class="o">-</span> <span class="nb">int</span> <span class="p">(</span> <span class="mf">30.6001</span> <span class="o">*</span> <span class="n">g</span> <span class="p">)</span>
+        <span class="n">day</span><span class="p">,</span> <span class="n">frac</span> <span class="o">=</span> <span class="nb">divmod</span> <span class="p">(</span> <span class="n">dayFrac</span><span class="p">,</span> <span class="mf">1.0</span> <span class="p">)</span>
+        <span class="n">dd</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">day</span><span class="p">)</span>
+        <span class="n">hr</span><span class="p">,</span> <span class="n">mn</span><span class="p">,</span> <span class="n">sc</span> <span class="o">=</span> <span class="n">dmsUnits</span><span class="o">.</span><span class="n">singleToMix</span> <span class="p">(</span> <span class="mf">24.0</span><span class="o">*</span><span class="n">frac</span> <span class="p">)</span>
+        <span class="c1">#-- 8 --</span>
+        <span class="k">if</span>  <span class="n">g</span> <span class="o">&lt;</span> <span class="mf">13.5</span><span class="p">:</span>  <span class="n">mm</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">g</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>             <span class="n">mm</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">g</span> <span class="o">-</span> <span class="mi">13</span><span class="p">)</span>
+        <span class="c1">#-- 9 --</span>
+        <span class="k">if</span>  <span class="n">mm</span> <span class="o">&gt;</span> <span class="mf">2.5</span><span class="p">:</span>  <span class="n">yyyy</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="o">-</span><span class="mi">4716</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>          <span class="n">yyyy</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="o">-</span><span class="mi">4715</span><span class="p">)</span>
+        <span class="c1">#-- 10 --</span>
+        <span class="n">sec</span><span class="p">,</span> <span class="n">fracSec</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">sc</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">usec</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fracSec</span> <span class="o">*</span> <span class="mf">1e6</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span> <span class="p">(</span> <span class="n">yyyy</span><span class="p">,</span> <span class="n">mm</span><span class="p">,</span> <span class="n">dd</span><span class="p">,</span> <span class="n">hr</span><span class="p">,</span> <span class="n">mn</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">sec</span><span class="p">),</span>
+                                   <span class="n">usec</span> <span class="p">)</span></div>
+
+<span class="c1"># - - -   J u l i a n D a t e . o f f s e t</span>
+
+<div class="viewcode-block" id="JulianDate.offset">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.JulianDate.offset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">offset</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">delta</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a new JulianDate for self+(delta days)</span>
+
+<span class="sd">          [ delta is a number of days as a float -&gt;</span>
+<span class="sd">              return a new JulianDate (delta) days in the</span>
+<span class="sd">              future, or past if negative ]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#-- 1 --</span>
+        <span class="n">newJ</span>  <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">j</span> <span class="o">+</span> <span class="n">delta</span>
+
+        <span class="c1">#-- 2 --</span>
+        <span class="c1"># [ newWhole  :=  whole part of newJ</span>
+        <span class="c1">#   newFrac   :=  fractional part of newJ ]</span>
+        <span class="n">newWhole</span><span class="p">,</span> <span class="n">newFrac</span>  <span class="o">=</span>  <span class="nb">divmod</span> <span class="p">(</span> <span class="n">newJ</span> <span class="p">)</span>
+
+        <span class="c1">#-- 3 --</span>
+        <span class="k">return</span>  <span class="n">JulianDate</span> <span class="p">(</span> <span class="n">newWhole</span><span class="o">+</span><span class="n">JULIAN_BIAS</span><span class="p">,</span> <span class="n">newFrac</span> <span class="p">)</span></div>
+
+<span class="c1"># - - -   J u l i a n D a t e . _ _ s u b _ _</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__sub__</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Implement subtraction.</span>
+
+<span class="sd">          [ other is a JulianDate instance -&gt;</span>
+<span class="sd">              return self.j - other.j ]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span>  <span class="bp">self</span><span class="o">.</span><span class="n">j</span> <span class="o">-</span> <span class="n">other</span><span class="o">.</span><span class="n">j</span>
+<span class="c1"># - - -   J u l i a n D a t e . _ _ c m p _ _</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__cmp__</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compare two instances.</span>
+
+<span class="sd">          [ other is a JulianDate instance -&gt;</span>
+<span class="sd">              if  self.j &lt; other.j -&gt;  return a negative number</span>
+<span class="sd">              else if self.j == other.j -&gt; return zero</span>
+<span class="sd">              else -&gt; return a positive number ]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span>  <span class="n">cmp</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">j</span> <span class="p">)</span>
+<span class="c1"># - - -   J u l i a n D a t e . f r o m D a t e t i m e</span>
+
+<span class="c1">#   @staticmethod</span>
+<div class="viewcode-block" id="JulianDate.fromDatetime">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.JulianDate.fromDatetime">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fromDatetime</span> <span class="p">(</span> <span class="n">dt</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a JulianDate instance from a datetime.datetime.</span>
+
+<span class="sd">          [ dt is a datetime.datetime instance -&gt;</span>
+<span class="sd">              if  dt is naive -&gt;</span>
+<span class="sd">                return the equivalent new JulianDate instance,</span>
+<span class="sd">                assuming dt expresses UTC</span>
+<span class="sd">              else -&gt;</span>
+<span class="sd">                return a new JulianDate instance for the UTC</span>
+<span class="sd">                time equivalent to dt ]              </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#-- 1 --</span>
+        <span class="c1"># [ if dt is naive -&gt;</span>
+        <span class="c1">#     utc  :=  dt</span>
+        <span class="c1">#   else -&gt;</span>
+        <span class="c1">#     utc  :=  dt - dt.utcoffset() ]</span>
+        <span class="n">utc</span>  <span class="o">=</span>  <span class="n">dt</span>
+        <span class="n">offset</span>  <span class="o">=</span>  <span class="n">dt</span><span class="o">.</span><span class="n">utcoffset</span><span class="p">()</span>
+        <span class="k">if</span>  <span class="n">offset</span><span class="p">:</span>
+            <span class="n">utc</span>  <span class="o">=</span>  <span class="n">dt</span> <span class="o">-</span> <span class="n">offset</span>
+        <span class="c1">#-- 2 --</span>
+        <span class="c1"># [ fracDay  :=  fraction of a day in [0.0,1.0) made from</span>
+        <span class="c1">#       utc.hour, utc.minute, utc.second, and utc.microsecond ]</span>
+        <span class="n">s</span>  <span class="o">=</span>  <span class="nb">float</span><span class="p">(</span><span class="n">utc</span><span class="o">.</span><span class="n">second</span><span class="p">)</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">utc</span><span class="o">.</span><span class="n">microsecond</span><span class="p">)</span><span class="o">*</span><span class="mf">1e-6</span>
+        <span class="n">hours</span>  <span class="o">=</span>  <span class="n">dmsUnits</span><span class="o">.</span><span class="n">mixToSingle</span> <span class="p">(</span> <span class="p">(</span><span class="n">utc</span><span class="o">.</span><span class="n">hour</span><span class="p">,</span> <span class="n">utc</span><span class="o">.</span><span class="n">minute</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span> <span class="p">)</span>
+        <span class="n">fracDay</span>  <span class="o">=</span>  <span class="n">hours</span> <span class="o">/</span> <span class="mf">24.0</span>
+        <span class="c1">#-- 3 --</span>
+        <span class="n">y</span>  <span class="o">=</span>  <span class="n">utc</span><span class="o">.</span><span class="n">year</span>
+        <span class="n">m</span>  <span class="o">=</span>  <span class="n">utc</span><span class="o">.</span><span class="n">month</span>
+        <span class="n">d</span>  <span class="o">=</span>  <span class="n">utc</span><span class="o">.</span><span class="n">day</span>
+        <span class="c1">#-- 4 --</span>
+        <span class="k">if</span>  <span class="n">m</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">y</span><span class="p">,</span> <span class="n">m</span>  <span class="o">=</span>  <span class="n">y</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">m</span><span class="o">+</span><span class="mi">12</span>
+        <span class="c1">#-- 5 --</span>
+        <span class="k">if</span>  <span class="p">(</span> <span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">1582</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">15</span><span class="p">)</span> <span class="p">):</span>
+            <span class="n">A</span>  <span class="o">=</span>  <span class="nb">int</span> <span class="p">(</span> <span class="n">y</span> <span class="o">/</span> <span class="mi">100</span> <span class="p">)</span>
+            <span class="n">B</span>  <span class="o">=</span>  <span class="mi">2</span> <span class="o">-</span> <span class="n">A</span> <span class="o">+</span> <span class="nb">int</span> <span class="p">(</span> <span class="n">A</span> <span class="o">/</span> <span class="mi">4</span> <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">B</span>  <span class="o">=</span>  <span class="mi">0</span>
+        <span class="c1">#-- 6 --</span>
+        <span class="n">C</span>  <span class="o">=</span>  <span class="nb">int</span> <span class="p">(</span> <span class="mf">365.25</span> <span class="o">*</span> <span class="n">y</span> <span class="p">)</span>
+        <span class="n">D</span>  <span class="o">=</span>  <span class="nb">int</span> <span class="p">(</span> <span class="mf">30.6001</span> <span class="o">*</span> <span class="p">(</span> <span class="n">m</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">)</span> <span class="p">)</span>
+        <span class="c1">#-- 7 --</span>
+        <span class="c1"># [ if fracDay+0.5 &gt;= 1.0 -&gt;</span>
+        <span class="c1">#     s  +=  1</span>
+        <span class="c1">#     fracDay  :=  (fracDay+0.5) % 1.0</span>
+        <span class="c1">#   else -&gt;</span>
+        <span class="c1">#     fracDay  :=  fracDay + 0.5 ]</span>
+        <span class="n">dayCarry</span><span class="p">,</span> <span class="n">fracDay</span>  <span class="o">=</span>  <span class="nb">divmod</span> <span class="p">(</span> <span class="n">fracDay</span><span class="o">+</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span> <span class="p">)</span>
+        <span class="n">d</span>  <span class="o">+=</span>  <span class="n">dayCarry</span>
+
+        <span class="c1">#-- 8 --</span>
+        <span class="n">j</span>  <span class="o">=</span>  <span class="n">B</span> <span class="o">+</span> <span class="n">C</span> <span class="o">+</span> <span class="n">D</span> <span class="o">+</span> <span class="n">d</span> <span class="o">+</span> <span class="mi">1720994</span>
+
+        <span class="c1">#-- 9 --</span>
+        <span class="k">return</span>  <span class="n">JulianDate</span> <span class="p">(</span> <span class="n">j</span><span class="p">,</span> <span class="n">fracDay</span> <span class="p">)</span></div>
+
+    <span class="n">fromDatetime</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">fromDatetime</span><span class="p">)</span></div>
+
+
+<span class="c1"># - - - - -   c l a s s   S i d e r e a l T i m e</span>
+
+<div class="viewcode-block" id="SiderealTime">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.SiderealTime">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SiderealTime</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a sidereal time value.</span>
+
+<span class="sd">      State/Internals:</span>
+<span class="sd">        .hours:     [ self as 15-degree hours ]</span>
+<span class="sd">        .radians:   [ self as radians ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="c1"># - - -   S i d e r e a l T i m e . _ _ i n i t _ _</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">hours</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor for SiderealTime</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hours</span>  <span class="o">=</span>  <span class="n">hours</span> <span class="o">%</span> <span class="mf">24.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">radians</span>  <span class="o">=</span>  <span class="n">hoursToRadians</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">hours</span> <span class="p">)</span>
+<span class="c1"># - - -   S i d e r e a l T i m e . _ _ s t r _ _</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert to a string such as &quot;[04h 40m 5.170s]&quot;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1">#-- 1 --</span>
+        <span class="c1"># [ values  :=  self.hours as a list of mixed units</span>
+        <span class="c1">#       in dmsUnits terms, formatted as left-zero</span>
+        <span class="c1">#       filled strings with 3 digits after the decimal ]</span>
+        <span class="n">mix</span>  <span class="o">=</span>  <span class="n">dmsUnits</span><span class="o">.</span><span class="n">singleToMix</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">hours</span> <span class="p">)</span>
+        <span class="n">values</span>  <span class="o">=</span>  <span class="n">dmsUnits</span><span class="o">.</span><span class="n">format</span> <span class="p">(</span> <span class="n">mix</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">lz</span><span class="o">=</span><span class="kc">True</span> <span class="p">)</span>
+
+        <span class="c1">#-- 2 --</span>
+        <span class="k">return</span> <span class="s2">&quot;[</span><span class="si">%s</span><span class="s2">h </span><span class="si">%s</span><span class="s2">m </span><span class="si">%s</span><span class="s2">s]&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+<span class="c1"># - - -   S i d e r e a l T i m e . u t c</span>
+
+<div class="viewcode-block" id="SiderealTime.utc">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.SiderealTime.utc">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">utc</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">date</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert GST to UTC.</span>
+
+<span class="sd">          [ date is a UTC date as a datetime.date instance -&gt;</span>
+<span class="sd">              return the first or only time at which self&#39;s GST</span>
+<span class="sd">              occurs at longitude 0 ]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#-- 1 --</span>
+        <span class="c1"># [ nDays  :=  number of days between Jan. 0 of year</span>
+        <span class="c1">#       (date.year) and date ]</span>
+        <span class="n">nDays</span>  <span class="o">=</span>  <span class="n">dayNo</span> <span class="p">(</span> <span class="n">date</span> <span class="p">)</span>
+        <span class="c1">#-- 2 --</span>
+        <span class="c1"># [ t0  :=  (nDays * A - B(date.year)), normalized to</span>
+        <span class="c1">#           interval [0,24) ]</span>
+        <span class="n">t0</span>  <span class="o">=</span>  <span class="p">(</span> <span class="p">(</span> <span class="n">nDays</span> <span class="o">*</span> <span class="n">SIDEREAL_A</span> <span class="o">-</span>
+                   <span class="n">SiderealTime</span><span class="o">.</span><span class="n">factorB</span> <span class="p">(</span> <span class="n">date</span><span class="o">.</span><span class="n">year</span> <span class="p">)</span> <span class="p">)</span> <span class="o">%</span> <span class="mf">24.0</span> <span class="p">)</span>
+        <span class="c1">#-- 3 --</span>
+        <span class="c1"># [ t1  :=  ((self in decimal hours)-t0), normalized to</span>
+        <span class="c1">#           the interval [0,24) ]</span>
+        <span class="n">t1</span>  <span class="o">=</span>  <span class="p">(</span> <span class="n">radiansToHours</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">radians</span> <span class="p">)</span> <span class="o">-</span> <span class="n">t0</span> <span class="p">)</span> <span class="o">%</span> <span class="mf">24.0</span>
+        <span class="c1">#-- 4 --</span>
+        <span class="n">gmtHours</span>  <span class="o">=</span>  <span class="n">t1</span> <span class="o">*</span> <span class="mf">0.997270</span>
+        <span class="c1">#-- 5 --</span>
+        <span class="c1"># [ dt  :=  a datetime.datetime instance whose date comes</span>
+        <span class="c1">#           from (date) and whose time is (gmtHours)</span>
+        <span class="c1">#           decimal hours ]</span>
+        <span class="n">hour</span><span class="p">,</span> <span class="n">minute</span><span class="p">,</span> <span class="n">floatSec</span>  <span class="o">=</span>  <span class="n">dmsUnits</span><span class="o">.</span><span class="n">singleToMix</span> <span class="p">(</span> <span class="n">gmtHours</span> <span class="p">)</span>
+        <span class="n">wholeSec</span><span class="p">,</span> <span class="n">fracSec</span>  <span class="o">=</span>  <span class="nb">divmod</span> <span class="p">(</span> <span class="n">floatSec</span><span class="p">,</span> <span class="mf">1.0</span> <span class="p">)</span>
+        <span class="n">second</span>  <span class="o">=</span>  <span class="nb">int</span> <span class="p">(</span> <span class="n">wholeSec</span> <span class="p">)</span>
+        <span class="n">micros</span>  <span class="o">=</span>  <span class="nb">int</span> <span class="p">(</span> <span class="n">fracSec</span> <span class="o">*</span> <span class="mf">1e6</span> <span class="p">)</span>
+        <span class="n">dt</span>  <span class="o">=</span>  <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span> <span class="p">(</span> <span class="n">date</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> <span class="n">date</span><span class="o">.</span><span class="n">month</span><span class="p">,</span>
+                   <span class="n">date</span><span class="o">.</span><span class="n">day</span><span class="p">,</span> <span class="n">hour</span><span class="p">,</span> <span class="n">minute</span><span class="p">,</span> <span class="n">second</span><span class="p">,</span> <span class="n">micros</span> <span class="p">)</span>
+        
+        <span class="c1">#-- 6 --</span>
+        <span class="k">return</span>  <span class="n">dt</span></div>
+
+<span class="c1"># - - -   S i d e r e a l T i m e . f a c t o r B</span>
+
+<span class="c1">#   @staticmethod</span>
+<div class="viewcode-block" id="SiderealTime.factorB">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.SiderealTime.factorB">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">factorB</span> <span class="p">(</span> <span class="n">yyyy</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute sidereal conversion factor B for a given year.</span>
+
+<span class="sd">          [ yyyy is a year number as an int -&gt;</span>
+<span class="sd">              return the GST at time yyyy-01-00T00:00 ]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#-- 1 --</span>
+        <span class="c1"># [ janJD  :=  the Julian date of January 0.0 of year</span>
+        <span class="c1">#              (yyyy), as a float ]</span>
+        <span class="n">janDT</span>  <span class="o">=</span>  <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span> <span class="p">(</span> <span class="n">yyyy</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span> <span class="p">)</span>
+        <span class="n">janJD</span>  <span class="o">=</span>  <span class="nb">float</span><span class="p">(</span><span class="n">JulianDate</span><span class="o">.</span><span class="n">fromDatetime</span><span class="p">(</span><span class="n">janDT</span><span class="p">))</span> <span class="o">-</span> <span class="mf">1.0</span>
+        <span class="c1">#-- 2 --</span>
+        <span class="n">s</span>  <span class="o">=</span>  <span class="n">janJD</span> <span class="o">-</span> <span class="mf">2415020.0</span>
+
+        <span class="c1">#-- 3 --</span>
+        <span class="n">t</span>  <span class="o">=</span>  <span class="n">s</span> <span class="o">/</span> <span class="mf">36525.0</span>
+
+        <span class="c1">#-- 4 --</span>
+        <span class="n">r</span>  <span class="o">=</span>  <span class="p">(</span> <span class="mf">0.00002581</span> <span class="o">*</span> <span class="n">t</span> <span class="o">+</span>
+                <span class="mf">2400.051262</span> <span class="p">)</span> <span class="o">*</span> <span class="n">t</span> <span class="o">+</span> <span class="mf">6.6460656</span>
+        <span class="c1">#-- 5 --</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">r</span> <span class="o">-</span> <span class="mi">24</span> <span class="o">*</span> <span class="p">(</span> <span class="n">yyyy</span><span class="o">-</span><span class="mi">1900</span><span class="p">)</span>
+
+        <span class="c1">#-- 6 --</span>
+        <span class="k">return</span> <span class="mf">24.0</span> <span class="o">-</span> <span class="n">u</span></div>
+
+
+    <span class="n">factorB</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">factorB</span><span class="p">)</span>
+<span class="c1"># - - -   S i d e r e a l T i m e . g s t</span>
+
+<div class="viewcode-block" id="SiderealTime.gst">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.SiderealTime.gst">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">gst</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">eLong</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert LST to GST.</span>
+
+<span class="sd">          [ self is local sidereal time at longitude eLong</span>
+<span class="sd">            radians east of Greenwich -&gt;</span>
+<span class="sd">              return the equivalent GST as a SiderealTime instance ]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#-- 1 --</span>
+        <span class="c1"># [ deltaHours  :=  eLong expressed in hours ]</span>
+        <span class="n">deltaHours</span>  <span class="o">=</span>  <span class="n">radiansToHours</span> <span class="p">(</span> <span class="n">eLong</span> <span class="p">)</span>
+
+        <span class="c1">#-- 2 --</span>
+        <span class="n">gstHours</span>  <span class="o">=</span>  <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">hours</span> <span class="o">-</span> <span class="n">deltaHours</span> <span class="p">)</span> <span class="o">%</span> <span class="mf">24.0</span>
+
+        <span class="c1">#-- 3 --</span>
+        <span class="k">return</span> <span class="n">SiderealTime</span> <span class="p">(</span> <span class="n">gstHours</span> <span class="p">)</span></div>
+
+<span class="c1"># - - -   S i d e r e a l T i m e . l s t</span>
+
+<div class="viewcode-block" id="SiderealTime.lst">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.SiderealTime.lst">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">lst</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">eLong</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert GST to LST.</span>
+
+<span class="sd">          [ (self is Greenwich sidereal time) and</span>
+<span class="sd">            (eLong is a longitude east of Greenwich in radians) -&gt;</span>
+<span class="sd">              return a new SiderealTime representing the LST</span>
+<span class="sd">              at longitude eLong ]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#-- 1 --</span>
+        <span class="c1"># [ deltaHours  :=  eLong expressed in hours ]</span>
+        <span class="n">deltaHours</span>  <span class="o">=</span>  <span class="n">radiansToHours</span> <span class="p">(</span> <span class="n">eLong</span> <span class="p">)</span>
+
+        <span class="c1">#-- 2 --</span>
+        <span class="n">gmtHours</span>  <span class="o">=</span>  <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hours</span> <span class="o">+</span> <span class="n">deltaHours</span><span class="p">)</span> <span class="o">%</span> <span class="mf">24.0</span>
+
+        <span class="c1">#-- 3 --</span>
+        <span class="k">return</span> <span class="n">SiderealTime</span> <span class="p">(</span> <span class="n">gmtHours</span> <span class="p">)</span></div>
+
+<span class="c1"># - - -   S i d e r e a l T i m e . f r o m D a t e t i m e</span>
+
+    <span class="n">SIDEREAL_C</span>  <span class="o">=</span>  <span class="mf">1.002738</span>
+
+<span class="c1">#   @staticmethod</span>
+<div class="viewcode-block" id="SiderealTime.fromDatetime">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.SiderealTime.fromDatetime">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fromDatetime</span> <span class="p">(</span> <span class="n">dt</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert civil time to Greenwich Sidereal.</span>
+
+<span class="sd">          [ dt is a datetime.datetime instance -&gt;</span>
+<span class="sd">              if  dt has time zone information -&gt;</span>
+<span class="sd">                return the GST at the UTC equivalent to dt</span>
+<span class="sd">              else -&gt;</span>
+<span class="sd">                return the GST assuming dt is UTC ]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#-- 1 --</span>
+        <span class="c1"># [ if  dt is naive -&gt;</span>
+        <span class="c1">#     utc  :=  dt</span>
+        <span class="c1">#   else -&gt;</span>
+        <span class="c1">#     utc  :=  the UTC time equivalent to dt ]</span>
+        <span class="n">utc</span>  <span class="o">=</span>  <span class="n">dt</span>
+        <span class="n">tz</span>  <span class="o">=</span>  <span class="n">dt</span><span class="o">.</span><span class="n">tzinfo</span>
+        <span class="k">if</span>  <span class="n">tz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">offset</span>  <span class="o">=</span>  <span class="n">tz</span><span class="o">.</span><span class="n">utcoffset</span> <span class="p">(</span> <span class="n">dt</span> <span class="p">)</span>
+            <span class="k">if</span>  <span class="n">offset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">utc</span>  <span class="o">=</span>  <span class="n">dt</span> <span class="o">-</span> <span class="n">offset</span>
+        <span class="c1">#-- 2 --</span>
+        <span class="c1"># [ nDays  :=  number of days between January 0.0 and utc ]</span>
+        <span class="n">nDays</span>  <span class="o">=</span>  <span class="n">dayNo</span> <span class="p">(</span> <span class="n">utc</span> <span class="p">)</span>
+        <span class="c1">#-- 3 --</span>
+        <span class="n">t0</span>  <span class="o">=</span>  <span class="p">(</span> <span class="n">nDays</span> <span class="o">*</span> <span class="n">SIDEREAL_A</span> <span class="o">-</span>
+                 <span class="n">SiderealTime</span><span class="o">.</span><span class="n">factorB</span> <span class="p">(</span> <span class="n">utc</span><span class="o">.</span><span class="n">year</span> <span class="p">)</span> <span class="p">)</span>
+        <span class="c1">#-- 4 --</span>
+        <span class="c1"># [ decUTC  :=  utc as decimal hours ]</span>
+        <span class="n">floatSec</span>  <span class="o">=</span>  <span class="n">utc</span><span class="o">.</span><span class="n">second</span> <span class="o">+</span> <span class="nb">float</span> <span class="p">(</span> <span class="n">utc</span><span class="o">.</span><span class="n">microsecond</span> <span class="p">)</span> <span class="o">/</span> <span class="mf">1e6</span>
+        <span class="n">decUTC</span>  <span class="o">=</span>  <span class="n">dmsUnits</span><span class="o">.</span><span class="n">mixToSingle</span> <span class="p">(</span>
+                       <span class="p">(</span><span class="n">utc</span><span class="o">.</span><span class="n">hour</span><span class="p">,</span> <span class="n">utc</span><span class="o">.</span><span class="n">minute</span><span class="p">,</span> <span class="n">floatSec</span><span class="p">)</span> <span class="p">)</span>
+        <span class="c1">#-- 4 --</span>
+        <span class="c1"># [ gst  :=  (decUTC * C + t0), normalized to interval [0,24) ]</span>
+        <span class="n">gst</span>  <span class="o">=</span>  <span class="p">(</span> <span class="n">decUTC</span> <span class="o">*</span> <span class="n">SiderealTime</span><span class="o">.</span><span class="n">SIDEREAL_C</span> <span class="o">+</span> <span class="n">t0</span><span class="p">)</span> <span class="o">%</span> <span class="mf">24.0</span>
+
+        <span class="c1">#-- 5 --</span>
+        <span class="k">return</span> <span class="n">SiderealTime</span> <span class="p">(</span> <span class="n">gst</span> <span class="p">)</span></div>
+
+    <span class="n">fromDatetime</span>  <span class="o">=</span>  <span class="nb">staticmethod</span> <span class="p">(</span> <span class="n">fromDatetime</span> <span class="p">)</span></div>
+
+
+<span class="c1"># - - - - -   c l a s s   A l t A z</span>
+
+<div class="viewcode-block" id="AltAz">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.AltAz">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AltAz</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a sky location in horizon coords. (altitude/azimuth)</span>
+
+<span class="sd">      Exports/Invariants:</span>
+<span class="sd">        .alt:   [ altitude in radians, in [-pi,+pi] ]</span>
+<span class="sd">        .az:    [ azimuth in radians, in [0,2*pi] ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="c1"># - - -   A l t A z . _ _ i n i t _ _</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">alt</span><span class="p">,</span> <span class="n">az</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor for AltAz, horizon coordinates.</span>
+
+<span class="sd">          [ (alt is an altitude in radians) and</span>
+<span class="sd">            (az is an azimuth in radians) -&gt;</span>
+<span class="sd">              return a new AltAz instance with those values,</span>
+<span class="sd">              normalized as per class invariants ]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alt</span>  <span class="o">=</span>  <span class="n">alt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">az</span>  <span class="o">=</span>  <span class="n">az</span>
+<span class="c1"># - - -   A l t A z . r a D e c</span>
+
+<div class="viewcode-block" id="AltAz.raDec">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.AltAz.raDec">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">raDec</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">lst</span><span class="p">,</span> <span class="n">latLon</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert horizon coordinates to equatorial.</span>
+
+<span class="sd">          [ (lst is a local sidereal time as a SiderealTime instance) and</span>
+<span class="sd">            (latLon is the observer&#39;s position as a LatLon instance) -&gt;</span>
+<span class="sd">              return the corresponding equatorial coordinates as a</span>
+<span class="sd">              RADec instance ]            </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#-- 1 --</span>
+        <span class="c1"># [ dec  :=  declination of self at latLon in radians</span>
+        <span class="c1">#   hourRadians  :=  hour angle of self at latlon in radians ]</span>
+        <span class="n">dec</span><span class="p">,</span> <span class="n">hourRadians</span>  <span class="o">=</span>  <span class="n">coordRotate</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">alt</span><span class="p">,</span> <span class="n">latLon</span><span class="o">.</span><span class="n">lat</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">az</span> <span class="p">)</span>
+
+        <span class="c1">#-- 2 --</span>
+        <span class="c1"># [ hourRadians is an hour angle in radians -&gt;</span>
+        <span class="c1">#     h  :=  hourRadians in hours ]</span>
+        <span class="n">h</span>  <span class="o">=</span>  <span class="n">radiansToHours</span> <span class="p">(</span> <span class="n">hourRadians</span> <span class="p">)</span>
+        <span class="c1">#-- 3 --</span>
+        <span class="c1"># [ ra  :=  right ascension for hour angle (h) at local</span>
+        <span class="c1">#           sidereal time (lst) and location (latLon) ]</span>
+        <span class="n">ra</span>  <span class="o">=</span>  <span class="n">hoursToRadians</span> <span class="p">(</span> <span class="p">(</span> <span class="n">lst</span><span class="o">.</span><span class="n">hours</span> <span class="o">-</span> <span class="n">h</span> <span class="p">)</span> <span class="o">%</span> <span class="mf">24.0</span> <span class="p">)</span>
+
+        <span class="c1">#-- 4 --</span>
+        <span class="k">return</span>  <span class="n">RADec</span> <span class="p">(</span> <span class="n">ra</span><span class="p">,</span> <span class="n">dec</span> <span class="p">)</span></div>
+
+<span class="c1"># - - -   A l t A z . _ _ s t r _ _</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert self to a string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#-- 1 --</span>
+        <span class="c1"># [ altList  :=  self.alt, formatted as degrees, minutes,</span>
+        <span class="c1">#       and seconds</span>
+        <span class="c1">#   azList  :=  self.az, formatted as degrees, minutes, and</span>
+        <span class="c1">#       seconds ]</span>
+        <span class="n">altList</span>  <span class="o">=</span>  <span class="n">dmsUnits</span><span class="o">.</span><span class="n">format</span> <span class="p">(</span> <span class="n">dmsUnits</span><span class="o">.</span><span class="n">singleToMix</span> <span class="p">(</span> 
+            <span class="n">degrees</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alt</span><span class="p">)</span> <span class="p">),</span> <span class="n">lz</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">3</span> <span class="p">)</span>
+        <span class="n">azList</span>  <span class="o">=</span>  <span class="n">dmsUnits</span><span class="o">.</span><span class="n">format</span> <span class="p">(</span> <span class="n">dmsUnits</span><span class="o">.</span><span class="n">singleToMix</span> <span class="p">(</span>
+            <span class="n">degrees</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">az</span><span class="p">)</span> <span class="p">),</span> <span class="n">lz</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">3</span> <span class="p">)</span>
+
+        <span class="c1">#-- 2 --</span>
+        <span class="k">return</span> <span class="p">(</span> <span class="s2">&quot;[az </span><span class="si">%s</span><span class="s2">d </span><span class="si">%s</span><span class="s2">&#39; </span><span class="si">%s</span><span class="se">\&quot;</span><span class="s2"> alt </span><span class="si">%s</span><span class="s2">d </span><span class="si">%s</span><span class="s2">&#39; </span><span class="si">%s</span><span class="se">\&quot;</span><span class="s2">]&quot;</span> <span class="o">%</span>
+                 <span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">azList</span><span class="p">)</span><span class="o">+</span><span class="nb">tuple</span><span class="p">(</span><span class="n">altList</span><span class="p">))</span> <span class="p">)</span></div>
+
+<span class="c1"># - - -   c o o r d R o t a t e</span>
+
+<div class="viewcode-block" id="coordRotate">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.coordRotate">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">coordRotate</span> <span class="p">(</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Used to convert between equatorial and horizon coordinates.</span>
+
+<span class="sd">      [ x, y, and z are angles in radians -&gt;</span>
+<span class="sd">          return (xt, yt) where</span>
+<span class="sd">          xt=arcsin(sin(x)*sin(y)+cos(x)*cos(y)*cos(z)) and</span>
+<span class="sd">          yt=arccos((sin(x)-sin(y)*sin(xt))/(cos(y)*cos(xt))) ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#-- 1 --</span>
+    <span class="n">xt</span>  <span class="o">=</span>  <span class="n">asin</span> <span class="p">(</span> <span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">+</span>
+                  <span class="n">cos</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="p">)</span>
+    <span class="c1">#-- 2 --</span>
+    <span class="n">yt</span>  <span class="o">=</span>  <span class="n">acos</span> <span class="p">(</span> <span class="p">(</span> <span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="n">sin</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">xt</span><span class="p">)</span> <span class="p">)</span> <span class="o">/</span>
+                  <span class="p">(</span> <span class="n">cos</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">xt</span><span class="p">)</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="c1">#-- 3 --</span>
+    <span class="k">if</span>  <span class="n">sin</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="n">yt</span>  <span class="o">=</span>  <span class="n">TWO_PI</span> <span class="o">-</span> <span class="n">yt</span>
+
+    <span class="c1">#-- 4 --</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">xt</span><span class="p">,</span> <span class="n">yt</span><span class="p">)</span></div>
+
+
+<span class="c1"># - - - - -   c l a s s   R A D e c</span>
+
+<div class="viewcode-block" id="RADec">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.RADec">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RADec</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a celestial location in equatorial coordinates.</span>
+
+<span class="sd">      Exports/Invariants:</span>
+<span class="sd">        .ra:      [ right ascension in radians ]</span>
+<span class="sd">        .dec:     [ declination in radians ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="c1"># - - -   R A D e c . _ _ i n i t _ _</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">ra</span><span class="p">,</span> <span class="n">dec</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor for RADec.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ra</span>  <span class="o">=</span>  <span class="n">ra</span> <span class="o">%</span> <span class="n">TWO_PI</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dec</span>  <span class="o">=</span>  <span class="n">dec</span>
+<span class="c1"># - - -   R A D e c . h o u r A n g l e</span>
+
+<div class="viewcode-block" id="RADec.hourAngle">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.RADec.hourAngle">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">hourAngle</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">utc</span><span class="p">,</span> <span class="n">eLong</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Find the hour angle at a given observer&#39;s location.</span>
+
+<span class="sd">          [ (utc is a Universal Time as a datetime.datetime) and</span>
+<span class="sd">            (eLong is an east longitude in radians) -&gt;</span>
+<span class="sd">              return the hour angle of self at that time and</span>
+<span class="sd">              longitude, in radians ]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span>  <span class="n">raToHourAngle</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">ra</span><span class="p">,</span> <span class="n">utc</span><span class="p">,</span> <span class="n">eLong</span> <span class="p">)</span></div>
+
+<span class="c1"># - - -   R A D e c . a l t A z</span>
+
+<div class="viewcode-block" id="RADec.altAz">
+<a class="viewcode-back" href="../../../api/killMS.Data.html#killMS.Data.sidereal.RADec.altAz">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">altAz</span> <span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">lat</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert equatorial to horizon coordinates.</span>
+
+<span class="sd">          [ (h is an object&#39;s hour angle in radians) and</span>
+<span class="sd">            (lat is the observer&#39;s latitude in radians) -&gt;</span>
+<span class="sd">              return self&#39;s position in the observer&#39;s sky</span>
+<span class="sd">              in horizon coordinates as an AltAz instance ]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#-- 1 --</span>
+        <span class="c1"># [ alt  :=  altitude of self as seen from latLon at utc</span>
+        <span class="c1">#   az  :=  azimuth of self as seen from latLon at utc ]</span>
+        <span class="n">alt</span><span class="p">,</span> <span class="n">az</span>  <span class="o">=</span>  <span class="n">coordRotate</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">dec</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">h</span> <span class="p">)</span>
+
+        <span class="c1">#-- 2 --</span>
+        <span class="k">return</span> <span class="n">AltAz</span> <span class="p">(</span> <span class="n">alt</span><span class="p">,</span> <span class="n">az</span> <span class="p">)</span></div>
+
+<span class="c1"># - - -   R A D e c . _ _ s t r _ _</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span> <span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return self as a string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#-- 1 --</span>
+        <span class="c1"># [ raUnits  :=  units of self.ra as hours/minutes/seconds</span>
+        <span class="c1">#   decUnits  :=  units of self.dec as degrees/minutes/seconds</span>
+        <span class="n">raUnits</span>  <span class="o">=</span>  <span class="n">dmsUnits</span><span class="o">.</span><span class="n">format</span> <span class="p">(</span>
+            <span class="n">dmsUnits</span><span class="o">.</span><span class="n">singleToMix</span> <span class="p">(</span> <span class="n">radiansToHours</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ra</span><span class="p">)</span> <span class="p">),</span>
+            <span class="n">lz</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">3</span> <span class="p">)</span>
+        <span class="n">decUnits</span>  <span class="o">=</span>  <span class="n">dmsUnits</span><span class="o">.</span><span class="n">format</span> <span class="p">(</span>
+            <span class="n">dmsUnits</span><span class="o">.</span><span class="n">singleToMix</span> <span class="p">(</span> <span class="n">degrees</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dec</span><span class="p">)</span> <span class="p">),</span>
+            <span class="n">lz</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">3</span> <span class="p">)</span>
+
+        <span class="c1">#-- 2 --</span>
+        <span class="k">return</span> <span class="p">(</span> <span class="s2">&quot;[</span><span class="si">%s</span><span class="s2">h </span><span class="si">%s</span><span class="s2">m </span><span class="si">%s</span><span class="s2">s, </span><span class="si">%s</span><span class="s2">d </span><span class="si">%s</span><span class="s2">&#39; </span><span class="si">%s</span><span class="se">\&quot;</span><span class="s2">]&quot;</span> <span class="o">%</span>
+                 <span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">raUnits</span><span class="p">)</span><span class="o">+</span><span class="nb">tuple</span><span class="p">(</span><span class="n">decUnits</span><span class="p">))</span> <span class="p">)</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">killMS</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">killMS</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Cyril Tasse.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
